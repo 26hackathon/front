@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -7,50 +7,161 @@ import {
   Image,
   Dimensions,
   Platform,
+  TouchableOpacity,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
-import { MOCK_FEED, MOCK_HERO, FeedItem } from '@/data/mockData';
+import { getPosts, togglePostLike, togglePostSave, PostResponse, startPostProgress, endPostProgress } from '@/lib/api';
+import { useAppStyles } from '@/hooks/use-app-styles';
+import { useProgress } from '@/store/progress-context';
 
 const { width } = Dimensions.get('window');
 
-export default function HomeScreen() {
-  const [activeFilter, setActiveFilter] = useState<'all' | 'done' | 'doing' | 'technic' | 'iconic'>('all');
-  const [feedItems, setFeedItems] = useState<FeedItem[]>(MOCK_FEED);
+// We don't need a wrapper state if we trust the API completely, but let's keep it for optimistic updates
+interface FeedItemState extends PostResponse {
+  isLiked: boolean;
+  isBookmarked: boolean;
+}
 
-  const toggleLike = (id: string) => {
+export default function HomeScreen() {
+  const router = useRouter();
+  const styles = useAppStyles(createStyles);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'done' | 'doing' | 'technic' | 'iconic'>('all');
+  const [feedItems, setFeedItems] = useState<FeedItemState[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const { isInProgress, refreshProgress } = useProgress();
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchPosts(false);
+    }, [])
+  );
+
+  // Background Auto-Refresh (Polling every 10 seconds)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchPosts(true); // silent background fetch
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchPosts = async (isSilent: boolean = false) => {
+    try {
+      if (!isSilent) setIsLoading(true);
+      const data = await getPosts();
+      
+      // Sort by newest first
+      data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      setFeedItems(prev => {
+        return data.map(post => {
+          return {
+            ...post,
+            isLiked: post.likedByCurrentUser,
+            isBookmarked: post.savedByCurrentUser,
+          };
+        });
+      });
+    } catch (error) {
+      console.error('Failed to fetch posts:', error);
+    } finally {
+      setIsLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchPosts(true);
+  }, []);
+
+  const toggleLike = async (id: number) => {
+    // Optimistic update
     setFeedItems(prev =>
       prev.map(item =>
         item.id === id
-          ? { ...item, isLiked: !item.isLiked, likes: item.isLiked ? item.likes - 1 : item.likes + 1 }
+          ? { ...item, isLiked: !item.isLiked, likeCount: item.isLiked ? item.likeCount - 1 : item.likeCount + 1 }
           : item
       )
     );
+    try {
+      const response = await togglePostLike(id);
+      // 백엔드에서 반환해준 정확한 좋아요 수와 상태로 최종 업데이트 (동기화)
+      if (response) {
+        setFeedItems(prev =>
+          prev.map(item =>
+            item.id === id
+              ? { ...item, isLiked: response.active, likeCount: response.count }
+              : item
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Like failed', error);
+      // 에러 발생 시 낙관적 업데이트 롤백
+      setFeedItems(prev =>
+        prev.map(item =>
+          item.id === id
+            ? { ...item, isLiked: !item.isLiked, likeCount: item.isLiked ? item.likeCount + 1 : item.likeCount - 1 }
+            : item
+        )
+      );
+    }
   };
 
-  const toggleBookmark = (id: string) => {
+  const toggleBookmark = async (id: number) => {
+    // Optimistic update
     setFeedItems(prev =>
       prev.map(item =>
-        item.id === id ? { ...item, isBookmarked: !item.isBookmarked } : item
+        item.id === id ? { ...item, isBookmarked: !item.isBookmarked, saveCount: item.isBookmarked ? item.saveCount - 1 : item.saveCount + 1 } : item
       )
     );
+    try {
+      await togglePostSave(id);
+    } catch (error) {
+      console.error('Save failed', error);
+    }
+  };
+
+  const handlePlayStop = async (id: number) => {
+    try {
+      if (isInProgress(id)) {
+        await endPostProgress(id);
+      } else {
+        await startPostProgress(id);
+        router.push('/assembly');
+      }
+      await refreshProgress();
+    } catch (error) {
+      console.error('Failed to toggle post progress', error);
+    }
   };
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF2E2E" />
+        }
+      >
         
         {/* TOP BRAND HEADER */}
         <View style={styles.header}>
           <ThemedText style={styles.logoText}>Logo</ThemedText>
           <View style={styles.headerActionIcons}>
             <Pressable style={styles.iconCircle}>
-              <Ionicons name="search" size={18} color="#8B8FA3" />
+              <Ionicons name="search" size={18} color={styles.defaultIconColor.color} />
             </Pressable>
-            <Pressable style={[styles.iconCircle, { backgroundColor: '#FF2E2E20' }]}>
+            <Pressable style={[styles.iconCircle, { backgroundColor: styles.brandIconBg.color }]}>
               <Ionicons name="flame" size={18} color="#FF2E2E" />
             </Pressable>
           </View>
@@ -77,49 +188,38 @@ export default function HomeScreen() {
           ))}
         </ScrollView>
 
-        {/* HERO BANNER */}
-        <View style={styles.heroCard}>
-          <Image source={{ uri: MOCK_HERO.image }} style={styles.heroImage} />
-          <LinearGradient colors={['transparent', 'rgba(15, 16, 23, 0.95)']} style={styles.heroGradient} />
-          <View style={styles.heroMeta}>
-            <View style={styles.bannerBadge}>
-              <ThemedText style={styles.bannerBadgeText}>{MOCK_HERO.badgeText}</ThemedText>
-            </View>
-            <ThemedText style={styles.heroTitle}>{MOCK_HERO.title}</ThemedText>
-            <View style={styles.likeRow}>
-              <Ionicons name="heart" size={14} color="#FF2E2E" />
-              <ThemedText style={styles.likeText}>{MOCK_HERO.likes.toLocaleString()}</ThemedText>
-              <ThemedText style={styles.pcsText}>• {MOCK_HERO.pcs.toLocaleString()}피스 - {MOCK_HERO.pct}%</ThemedText>
-            </View>
-          </View>
-        </View>
-
-        {/* SOCIAL FEED — loaded from MOCK_FEED */}
+        {/* SOCIAL FEED — loaded from actual API */}
         <View style={styles.feedContainer}>
           {feedItems.map((item) => (
             <View key={item.id} style={styles.feedCard}>
-              {/* User row */}
+              {/* User Info Row */}
               <View style={styles.userRow}>
-                <Image source={{ uri: item.userAvatar }} style={styles.userAvatar} />
+                <Image
+                  source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80' }}
+                  style={styles.userAvatar}
+                />
                 <View style={styles.userInfo}>
-                  <ThemedText style={styles.userName}>{item.userName}</ThemedText>
-                  <ThemedText style={styles.timeText}>{item.timeAgo}</ThemedText>
+                  <ThemedText style={styles.userName}>{item.uploaderNickname || `User ${item.uploaderId}`}</ThemedText>
+                  <ThemedText style={styles.timeText}>{new Date(item.createdAt).toLocaleDateString()}</ThemedText>
                 </View>
               </View>
 
-              {/* Project card */}
+              {/* Media Content */}
               <View style={styles.projectWrapper}>
-                <Image source={{ uri: item.projectImage }} style={styles.projectBg} />
-                <LinearGradient
-                  colors={['transparent', 'rgba(15, 16, 23, 0.8)']}
-                  style={styles.projectGradient}
-                />
+                <Image source={{ uri: item.thumbnailImageUrl }} style={styles.projectBg} />
+                <LinearGradient colors={['transparent', 'rgba(15,16,23,0.8)']} style={styles.projectGradient} />
                 <View style={styles.projectContent}>
-                  <ThemedText style={styles.projectTitle}>{item.projectTitle}</ThemedText>
-                  <ThemedText style={styles.projectDesc}>{item.projectDesc}</ThemedText>
+                  <ThemedText style={styles.projectTitle}>{item.title}</ThemedText>
+                  <ThemedText style={styles.projectDesc}>
+                    {/* 뷰 카운트가 아직 없으면 보여주지 않거나 더미 텍스트 
+                        조회수 {item.viewCount}회 */}
+                  </ThemedText>
                 </View>
-                <Pressable style={styles.playBtn}>
-                  <Ionicons name="play" size={16} color="#FFFFFF" />
+                <Pressable
+                  style={[styles.playBtn, isInProgress(item.id) && { backgroundColor: '#FF9F43' }]}
+                  onPress={() => handlePlayStop(item.id)}
+                >
+                  <Ionicons name={isInProgress(item.id) ? "stop" : "play"} size={16} color="#FFFFFF" />
                 </Pressable>
               </View>
 
@@ -129,30 +229,46 @@ export default function HomeScreen() {
                   <Ionicons
                     name={item.isLiked ? 'heart' : 'heart-outline'}
                     size={22}
-                    color={item.isLiked ? '#FF2E2E' : '#8B8FA3'}
+                    color={item.isLiked ? '#FF2E2E' : styles.defaultIconColor.color}
                   />
+                  <ThemedText style={{ color: styles.defaultIconColor.color, fontSize: 12, marginLeft: 4 }}>{item.likeCount}</ThemedText>
                 </Pressable>
-                <Pressable style={styles.actionBtn} onPress={() => toggleBookmark(item.id)}>
+                <Pressable style={[styles.actionBtn, { marginLeft: 8 }]} onPress={() => toggleBookmark(item.id)}>
                   <Ionicons
                     name={item.isBookmarked ? 'bookmark' : 'bookmark-outline'}
                     size={20}
-                    color={item.isBookmarked ? '#FF9F43' : '#8B8FA3'}
+                    color={item.isBookmarked ? '#FF9F43' : styles.defaultIconColor.color}
                   />
+                  <ThemedText style={{ color: styles.defaultIconColor.color, fontSize: 12, marginLeft: 4 }}>{item.saveCount}</ThemedText>
                 </Pressable>
               </View>
             </View>
           ))}
         </View>
-
       </ScrollView>
+
+      {/* FAB */}
+      <TouchableOpacity 
+        style={styles.fab} 
+        onPress={() => router.push('/create-post')}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="add" size={28} color="#FFFFFF" />
+      </TouchableOpacity>
     </ThemedView>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
+  defaultIconColor: {
+    color: colors.textMuted,
+  },
+  brandIconBg: {
+    color: colors.primary + '20',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#0F1017',
+    backgroundColor: colors.background,
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -172,7 +288,7 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 24,
     fontWeight: '900',
-    color: '#FFFFFF',
+    color: colors.text,
     letterSpacing: -0.5,
   },
   headerActionIcons: {
@@ -184,9 +300,9 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#161825',
+    backgroundColor: colors.card,
     borderWidth: 1.5,
-    borderColor: '#2A2D3E',
+    borderColor: colors.border,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -198,89 +314,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#1E2030',
+    backgroundColor: colors.cardSecondary,
     borderWidth: 1,
-    borderColor: '#2A2D3E',
+    borderColor: colors.border,
   },
   activeTabChip: {
-    backgroundColor: '#FF2E2E',
-    borderColor: '#FF2E2E',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   tabChipText: {
     fontSize: 13,
-    color: '#8B8FA3',
+    color: colors.textMuted,
     fontWeight: '700',
   },
   activeTabChipText: {
     color: '#FFFFFF',
   },
-  heroCard: {
-    height: 220,
-    borderRadius: 24,
-    overflow: 'hidden',
-    position: 'relative',
-    borderWidth: 1.5,
-    borderColor: '#2A2D3E',
-  },
-  heroImage: {
-    width: '100%',
-    height: '100%',
-  },
-  heroGradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '60%',
-  },
-  heroMeta: {
-    position: 'absolute',
-    bottom: 16,
-    left: 20,
-    right: 20,
-    gap: 4,
-  },
-  bannerBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#FF9F43',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    marginBottom: 4,
-  },
-  bannerBadgeText: {
-    color: '#0F1017',
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  heroTitle: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#FFFFFF',
-  },
-  likeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  likeText: {
-    color: '#FF2E2E',
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  pcsText: {
-    color: '#8B8FA3',
-    fontSize: 12,
-    fontWeight: '600',
-  },
   feedContainer: {
     gap: 20,
+    marginTop: 16,
   },
   feedCard: {
-    backgroundColor: '#161825',
+    backgroundColor: colors.card,
     borderRadius: 24,
     borderWidth: 1.5,
-    borderColor: '#2A2D3E',
+    borderColor: colors.border,
     padding: 16,
     gap: 14,
   },
@@ -294,7 +352,7 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 19,
     borderWidth: 1.5,
-    borderColor: '#2A2D3E',
+    borderColor: colors.border,
   },
   userInfo: {
     gap: 2,
@@ -302,11 +360,11 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   timeText: {
     fontSize: 11,
-    color: '#8B8FA3',
+    color: colors.textMuted,
   },
   projectWrapper: {
     height: 150,
@@ -355,5 +413,21 @@ const styles = StyleSheet.create({
   actionBtn: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FF2E2E',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#FF2E2E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
   },
 });

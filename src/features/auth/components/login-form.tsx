@@ -9,6 +9,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/ui/themed-text';
+import { useAppStyles } from '@/hooks/use-app-styles';
 
 type LoginFormProps = {
   onLogin: (email: string, password: string) => void;
@@ -18,22 +19,12 @@ type LoginFormProps = {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function LoginForm({ onLogin, onGoogleLogin }: LoginFormProps) {
+  const styles = useAppStyles(createStyles);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isEmailFocused, setIsEmailFocused] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
-
-  const colors = {
-    primary: '#FF2E2E',
-    primaryDark: '#D02E2E',
-    inputBg: '#0F1017',
-    inputBorder: '#2A2D3E',
-    inputBorderActive: '#FF2E2E',
-    inputText: '#ECEDEE',
-    placeholder: '#8B8FA3',
-    subtleText: '#8B8FA3',
-  };
 
   const handleSubmit = () => {
     if (!email.trim() || !password.trim()) {
@@ -51,21 +42,20 @@ export function LoginForm({ onLogin, onGoogleLogin }: LoginFormProps) {
     <View>
       {/* Email Input */}
       <View style={styles.inputGroup}>
-        <ThemedText style={[styles.label, { color: colors.subtleText }]}>이메일</ThemedText>
+        <ThemedText style={styles.label}>이메일</ThemedText>
         <View style={[styles.inputContainer, {
-          backgroundColor: colors.inputBg,
-          borderColor: isEmailFocused ? colors.inputBorderActive : colors.inputBorder,
+          borderColor: isEmailFocused ? styles.inputBorderActive.color : styles.inputBorder.color,
         }]}>
           <Ionicons
             name="mail-outline"
             size={18}
-            color={isEmailFocused ? colors.primary : colors.placeholder}
+            color={isEmailFocused ? styles.inputBorderActive.color : styles.placeholderIcon.color}
             style={styles.inputIcon}
           />
           <TextInput
-            style={[styles.input, { color: colors.inputText }]}
+            style={styles.input}
             placeholder="이메일을 입력하세요"
-            placeholderTextColor={colors.placeholder}
+            placeholderTextColor={styles.placeholderIcon.color}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -79,21 +69,20 @@ export function LoginForm({ onLogin, onGoogleLogin }: LoginFormProps) {
 
       {/* Password Input */}
       <View style={styles.inputGroup}>
-        <ThemedText style={[styles.label, { color: colors.subtleText }]}>비밀번호</ThemedText>
+        <ThemedText style={styles.label}>비밀번호</ThemedText>
         <View style={[styles.inputContainer, {
-          backgroundColor: colors.inputBg,
-          borderColor: isPasswordFocused ? colors.inputBorderActive : colors.inputBorder,
+          borderColor: isPasswordFocused ? styles.inputBorderActive.color : styles.inputBorder.color,
         }]}>
           <Ionicons
             name="lock-closed-outline"
             size={18}
-            color={isPasswordFocused ? colors.primary : colors.placeholder}
+            color={isPasswordFocused ? styles.inputBorderActive.color : styles.placeholderIcon.color}
             style={styles.inputIcon}
           />
           <TextInput
-            style={[styles.input, { color: colors.inputText }]}
+            style={styles.input}
             placeholder="비밀번호를 입력하세요"
-            placeholderTextColor={colors.placeholder}
+            placeholderTextColor={styles.placeholderIcon.color}
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
@@ -107,7 +96,7 @@ export function LoginForm({ onLogin, onGoogleLogin }: LoginFormProps) {
             <Ionicons
               name={showPassword ? 'eye-outline' : 'eye-off-outline'}
               size={18}
-              color={colors.placeholder}
+              color={styles.placeholderIcon.color}
             />
           </Pressable>
         </View>
@@ -119,7 +108,7 @@ export function LoginForm({ onLogin, onGoogleLogin }: LoginFormProps) {
         style={({ pressed }) => [
           styles.loginButton,
           {
-            backgroundColor: pressed ? colors.primaryDark : colors.primary,
+            backgroundColor: pressed ? '#D02E2E' : styles.loginButtonBg.color,
             transform: [{ scale: pressed ? 0.98 : 1 }],
           },
         ]}
@@ -130,9 +119,9 @@ export function LoginForm({ onLogin, onGoogleLogin }: LoginFormProps) {
       {onGoogleLogin && (
         <>
           <View style={styles.dividerContainer}>
-            <View style={[styles.divider, { backgroundColor: colors.inputBorder }]} />
-            <ThemedText style={[styles.dividerText, { color: colors.subtleText }]}>또는</ThemedText>
-            <View style={[styles.divider, { backgroundColor: colors.inputBorder }]} />
+            <View style={styles.divider} />
+            <ThemedText style={styles.dividerText}>또는</ThemedText>
+            <View style={styles.divider} />
           </View>
 
           <Pressable
@@ -140,14 +129,13 @@ export function LoginForm({ onLogin, onGoogleLogin }: LoginFormProps) {
             style={({ pressed }) => [
               styles.googleButton,
               {
-                backgroundColor: '#1E2030',
-                borderColor: '#2A2D3E',
+                backgroundColor: pressed ? styles.inputBorder.color : styles.googleButton.backgroundColor,
                 transform: [{ scale: pressed ? 0.98 : 1 }],
               },
             ]}
           >
-            <Ionicons name="logo-google" size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-            <ThemedText style={[styles.googleButtonText, { color: '#FFFFFF' }]}>
+            <Ionicons name="logo-google" size={18} color={styles.googleButtonContent.color} style={{ marginRight: 8 }} />
+            <ThemedText style={styles.googleButtonText}>
               Google로 시작하기
             </ThemedText>
           </Pressable>
@@ -157,19 +145,36 @@ export function LoginForm({ onLogin, onGoogleLogin }: LoginFormProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
+  placeholderIcon: {
+    color: colors.textMuted,
+  },
+  inputBorderActive: {
+    color: colors.primary,
+  },
+  inputBorder: {
+    color: colors.border,
+  },
+  loginButtonBg: {
+    color: colors.primary,
+  },
+  googleButtonContent: {
+    color: colors.text,
+  },
   inputGroup: {
     marginBottom: 20,
   },
   label: {
     fontSize: 13,
     fontWeight: '700',
+    color: colors.textMuted,
     marginBottom: 8,
     letterSpacing: 0.3,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: colors.card,
     borderRadius: 16,
     borderWidth: 1.5,
     paddingHorizontal: 14,
@@ -181,6 +186,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 15,
+    color: colors.text,
     height: '100%',
   },
   eyeButton: {
@@ -192,7 +198,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 8,
-    shadowColor: '#FF2E2E',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -211,22 +217,27 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
     height: 1,
+    backgroundColor: colors.border,
   },
   dividerText: {
     marginHorizontal: 16,
     fontSize: 13,
+    color: colors.textMuted,
     fontWeight: '600',
   },
   googleButton: {
     height: 52,
+    backgroundColor: colors.cardSecondary,
     borderRadius: 16,
     borderWidth: 1.5,
+    borderColor: colors.border,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
   googleButtonText: {
     fontSize: 15,
+    color: colors.text,
     fontWeight: '700',
   },
 });

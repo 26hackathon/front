@@ -17,20 +17,14 @@ import { LoginForm } from '@/features/auth/components/login-form';
 import { useResponsive } from '@/hooks/use-responsive';
 import { API_BASE_URL, fetchApi } from '@/lib/api';
 import { useAuth } from '@/store/auth-context';
+import { useAppStyles } from '@/hooks/use-app-styles';
 import * as WebBrowser from 'expo-web-browser';
 
 export default function LoginScreen() {
   const router = useRouter();
   const { isDesktop } = useResponsive();
   const { login } = useAuth();
-
-  const colors = {
-    primary: '#FF2E2E',
-    inputText: '#ECEDEE',
-    cardBg: '#161825',
-    subtleText: '#8B8FA3',
-    linkColor: '#FF2E2E',
-  };
+  const styles = useAppStyles(createStyles);
 
   const handleLogin = async (email: string, password: string) => {
     try {
@@ -133,27 +127,24 @@ export default function LoginScreen() {
           <Ionicons
             name="chevron-back"
             size={24}
-            color={colors.inputText}
+            color={styles.iconColor.color}
           />
         </Pressable>
       )}
 
       {/* Header */}
       <View style={styles.header}>
-        <View style={[styles.logoContainer, { backgroundColor: colors.primary + '15' }]}>
-          <Ionicons name="cube-outline" size={60} color={colors.primary} />
+        <View style={[styles.logoContainer, { backgroundColor: styles.brandIconBg.color }]}>
+          <Ionicons name="cube-outline" size={60} color={styles.brandText.color} />
         </View>
-        <ThemedText style={styles.title}>깨다 <ThemedText style={{ color: colors.primary }}>GGÆDA</ThemedText></ThemedText>
-        <ThemedText style={[styles.subtitle, { color: colors.subtleText }]}>
+        <ThemedText style={styles.title}>깨다 <ThemedText style={styles.brandText}>GGÆDA</ThemedText></ThemedText>
+        <ThemedText style={styles.subtitle}>
           비전 분석 기반 레고 역설계 플랫폼
         </ThemedText>
       </View>
 
       {/* Form Card */}
-      <View style={[styles.formCard, {
-        backgroundColor: colors.cardBg,
-        shadowColor: '#FF2E2E',
-      }]}>
+      <View style={styles.formCard}>
         <LoginForm onLogin={handleLogin} onGoogleLogin={handleGoogleLogin} />
 
         {/* Account Recovery Link */}
@@ -162,7 +153,7 @@ export default function LoginScreen() {
             onPress={() => router.push('/account-recovery')}
             style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
           >
-            <ThemedText style={[styles.findLinkText, { color: colors.subtleText }]}>
+            <ThemedText style={styles.findLinkText}>
               아이디찾기/비번찾기
             </ThemedText>
           </Pressable>
@@ -171,14 +162,14 @@ export default function LoginScreen() {
 
       {/* Register Link */}
       <View style={styles.registerContainer}>
-        <ThemedText style={[styles.registerText, { color: colors.subtleText }]}>
+        <ThemedText style={styles.registerText}>
           아직 계정이 없으신가요?
         </ThemedText>
         <Pressable
           onPress={() => router.push('/register')}
           style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
         >
-          <ThemedText style={[styles.registerLink, { color: colors.linkColor }]}>
+          <ThemedText style={styles.registerLink}>
             회원가입
           </ThemedText>
         </Pressable>
@@ -202,12 +193,12 @@ export default function LoginScreen() {
           </LinearGradient>
         </View>
         <KeyboardAvoidingView behavior="padding" style={styles.rightPane}>
-          <Pressable
+            <Pressable
             onPress={() => router.push('/')}
             style={({ pressed }) => [styles.desktopHomeBtn, { opacity: pressed ? 0.6 : 1 }]}
           >
-            <Ionicons name="home-outline" size={24} color={colors.subtleText} />
-            <ThemedText style={{ color: colors.subtleText, marginLeft: 8, fontWeight: '600' }}>홈으로</ThemedText>
+            <Ionicons name="home-outline" size={24} color={styles.desktopHomeIcon.color} />
+            <ThemedText style={styles.desktopHomeText}>홈으로</ThemedText>
           </Pressable>
           {renderForm()}
         </KeyboardAvoidingView>
@@ -227,10 +218,27 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
+  iconColor: {
+    color: colors.text,
+  },
+  brandIconBg: {
+    color: colors.primary + '15',
+  },
+  brandText: {
+    color: colors.primary,
+  },
+  desktopHomeIcon: {
+    color: colors.textMuted,
+  },
+  desktopHomeText: {
+    color: colors.textMuted,
+    marginLeft: 8,
+    fontWeight: '600',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#0F1017',
+    backgroundColor: colors.background,
     overflow: 'hidden',
   },
   keyboardView: {
@@ -257,7 +265,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
-    backgroundColor: '#1E2030',
+    backgroundColor: colors.cardSecondary,
   },
   header: {
     alignItems: 'center',
@@ -271,25 +279,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     borderWidth: 1.5,
-    borderColor: '#FF2E2E',
+    borderColor: colors.primary,
   },
   title: {
     fontSize: 28,
     fontWeight: '900',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 8,
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 14,
+    color: colors.textMuted,
     textAlign: 'center',
     lineHeight: 20,
   },
   formCard: {
     borderRadius: 24,
     padding: 24,
+    backgroundColor: colors.card,
     borderWidth: 1.5,
-    borderColor: '#2A2D3E',
+    borderColor: colors.border,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.1,
     shadowRadius: 24,
@@ -304,6 +315,7 @@ const styles = StyleSheet.create({
   },
   findLinkText: {
     fontSize: 13,
+    color: colors.textMuted,
     fontWeight: '600',
   },
   registerContainer: {
@@ -315,16 +327,18 @@ const styles = StyleSheet.create({
   },
   registerText: {
     fontSize: 14,
+    color: colors.textMuted,
     fontWeight: '600',
   },
   registerLink: {
     fontSize: 14,
+    color: colors.primary,
     fontWeight: '700',
   },
   splitContainer: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: '#0F1017',
+    backgroundColor: colors.background,
   },
   leftPane: {
     flex: 1,
@@ -332,9 +346,9 @@ const styles = StyleSheet.create({
   rightPane: {
     width: 500,
     borderLeftWidth: 1,
-    borderLeftColor: '#2A2D3E',
+    borderLeftColor: colors.border,
     position: 'relative',
-    backgroundColor: '#0F1017',
+    backgroundColor: colors.background,
   },
   gradient: {
     flex: 1,
@@ -348,12 +362,12 @@ const styles = StyleSheet.create({
   brandingTitle: {
     fontSize: 36,
     fontWeight: '900',
-    color: '#FFF',
+    color: '#FFF', // Keeping left pane dark theme aesthetic
     marginBottom: 16,
   },
   brandingSubtitle: {
     fontSize: 16,
-    color: '#8B8FA3',
+    color: 'rgba(255,255,255,0.7)',
     textAlign: 'center',
     lineHeight: 24,
     maxWidth: 320,
@@ -366,9 +380,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     borderRadius: 12,
-    backgroundColor: '#1E2030',
+    backgroundColor: colors.cardSecondary,
     borderWidth: 1,
-    borderColor: '#2A2D3E',
+    borderColor: colors.border,
     zIndex: 10,
   },
 });

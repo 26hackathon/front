@@ -19,6 +19,7 @@ import { ThemedView } from '@/components/ui/themed-view';
 import { useResponsive } from '@/hooks/use-responsive';
 import { fetchApi } from '@/lib/api';
 import { useAuth } from '@/store/auth-context';
+import { useAppStyles } from '@/hooks/use-app-styles';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -26,6 +27,7 @@ export default function RegisterScreen() {
   const router = useRouter();
   const { isDesktop } = useResponsive();
   const { login } = useAuth();
+  const styles = useAppStyles(createStyles);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState(1);
@@ -66,20 +68,6 @@ export default function RegisterScreen() {
   const passwordMatchError = passwordConfirm.length > 0 && password !== passwordConfirm;
   const emailError = email.length > 0 && !EMAIL_REGEX.test(email);
   const nameError = name.length > 30 ? '닉네임은 30자 이하이어야 합니다.' : '';
-
-  const colors = {
-    primary: '#FF2E2E',
-    primaryDark: '#D02E2E',
-    inputBg: '#0F1017',
-    inputBorder: '#2A2D3E',
-    inputBorderActive: '#FF2E2E',
-    inputText: '#ECEDEE',
-    placeholder: '#8B8FA3',
-    cardBg: '#161825',
-    subtleText: '#8B8FA3',
-    error: '#EF4444',
-    success: '#10B981',
-  };
 
   const handleNext = async () => {
     if (step === 1 && email.trim() && !emailError) setStep(2);
@@ -173,7 +161,7 @@ export default function RegisterScreen() {
             key={s}
             style={[
               styles.indicatorDot,
-              { backgroundColor: s <= step ? colors.primary : colors.inputBorder },
+              { backgroundColor: s <= step ? styles.primaryColor.color : styles.inputBorder.color },
             ]}
           />
         ))}
@@ -201,7 +189,7 @@ export default function RegisterScreen() {
                 { opacity: pressed ? 0.6 : 1 },
               ]}
             >
-              <Ionicons name="chevron-back" size={24} color={colors.inputText} />
+              <Ionicons name="chevron-back" size={24} color={styles.iconColor.color} />
             </Pressable>
           )}
           {isDesktop && step > 1 && (
@@ -212,7 +200,7 @@ export default function RegisterScreen() {
                 { opacity: pressed ? 0.6 : 1 },
               ]}
             >
-              <Ionicons name="chevron-back" size={24} color={colors.inputText} />
+              <Ionicons name="chevron-back" size={24} color={styles.iconColor.color} />
             </Pressable>
           )}
           {isDesktop && step === 1 && <View style={styles.backButton} />}
@@ -231,30 +219,26 @@ export default function RegisterScreen() {
       >
         {renderStepIndicator()}
 
-        <View style={[styles.formCard, {
-          backgroundColor: colors.cardBg,
-          borderColor: colors.inputBorder,
-        }]}>
+        <View style={styles.formCard}>
           {step === 1 && (
             <View>
               <ThemedText style={styles.stepTitle}>이메일을 입력해주세요</ThemedText>
-              <ThemedText style={[styles.stepSubtitle, { color: colors.subtleText }]}>
+              <ThemedText style={styles.stepSubtitle}>
                 로그인 시 아이디로 사용할 이메일입니다.
               </ThemedText>
               <View style={[styles.inputContainer, {
-                backgroundColor: colors.inputBg,
-                borderColor: emailError ? colors.error : (isEmailFocused ? colors.inputBorderActive : colors.inputBorder),
+                borderColor: emailError ? styles.errorColor.color : (isEmailFocused ? styles.inputBorderActive.color : styles.inputBorder.color),
               }]}>
                 <Ionicons
                   name="mail-outline"
                   size={18}
-                  color={emailError ? colors.error : (isEmailFocused ? colors.primary : colors.placeholder)}
+                  color={emailError ? styles.errorColor.color : (isEmailFocused ? styles.primaryColor.color : styles.placeholderIcon.color)}
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={[styles.input, { color: colors.inputText }]}
+                  style={styles.input}
                   placeholder="example@email.com"
-                  placeholderTextColor={colors.placeholder}
+                  placeholderTextColor={styles.placeholderIcon.color}
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
@@ -266,7 +250,7 @@ export default function RegisterScreen() {
                 />
               </View>
               {emailError && (
-                <ThemedText style={[styles.errorText, { color: colors.error }]}>
+                <ThemedText style={[styles.errorText, { color: styles.errorColor.color }]}>
                   유효한 이메일 형식이 아닙니다.
                 </ThemedText>
               )}
@@ -276,24 +260,23 @@ export default function RegisterScreen() {
           {step === 2 && (
             <View>
               <ThemedText style={styles.stepTitle}>비밀번호를 설정해주세요</ThemedText>
-              <ThemedText style={[styles.stepSubtitle, { color: colors.subtleText }]}>
+              <ThemedText style={styles.stepSubtitle}>
                 8~100자의 비밀번호
               </ThemedText>
 
               <View style={[styles.inputContainer, styles.marginBottom, {
-                backgroundColor: colors.inputBg,
-                borderColor: passwordError ? colors.error : (isPasswordFocused ? colors.inputBorderActive : colors.inputBorder),
+                borderColor: passwordError ? styles.errorColor.color : (isPasswordFocused ? styles.inputBorderActive.color : styles.inputBorder.color),
               }]}>
                 <Ionicons
                   name="lock-closed-outline"
                   size={18}
-                  color={passwordError ? colors.error : (isPasswordFocused ? colors.primary : colors.placeholder)}
+                  color={passwordError ? styles.errorColor.color : (isPasswordFocused ? styles.primaryColor.color : styles.placeholderIcon.color)}
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={[styles.input, { color: colors.inputText }]}
+                  style={styles.input}
                   placeholder="비밀번호"
-                  placeholderTextColor={colors.placeholder}
+                  placeholderTextColor={styles.placeholderIcon.color}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
@@ -303,25 +286,24 @@ export default function RegisterScreen() {
                 />
               </View>
               {!!passwordError && (
-                <ThemedText style={[styles.errorText, { color: colors.error, marginBottom: 16, marginTop: -8 }]}>
+                <ThemedText style={[styles.errorText, { color: styles.errorColor.color, marginBottom: 16, marginTop: -8 }]}>
                   {passwordError}
                 </ThemedText>
               )}
 
               <View style={[styles.inputContainer, {
-                backgroundColor: colors.inputBg,
-                borderColor: passwordMatchError ? colors.error : (isPasswordConfirmFocused ? colors.inputBorderActive : colors.inputBorder),
+                borderColor: passwordMatchError ? styles.errorColor.color : (isPasswordConfirmFocused ? styles.inputBorderActive.color : styles.inputBorder.color),
               }]}>
                 <Ionicons
                   name="checkmark-circle-outline"
                   size={18}
-                  color={passwordMatchError ? colors.error : (isPasswordConfirmFocused ? colors.primary : colors.placeholder)}
+                  color={passwordMatchError ? styles.errorColor.color : (isPasswordConfirmFocused ? styles.primaryColor.color : styles.placeholderIcon.color)}
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={[styles.input, { color: colors.inputText }]}
+                  style={styles.input}
                   placeholder="비밀번호 확인"
-                  placeholderTextColor={colors.placeholder}
+                  placeholderTextColor={styles.placeholderIcon.color}
                   value={passwordConfirm}
                   onChangeText={setPasswordConfirm}
                   secureTextEntry
@@ -330,7 +312,7 @@ export default function RegisterScreen() {
                 />
               </View>
               {passwordMatchError && (
-                <ThemedText style={[styles.errorText, { color: colors.error }]}>
+                <ThemedText style={[styles.errorText, { color: styles.errorColor.color }]}>
                   비밀번호가 일치하지 않습니다.
                 </ThemedText>
               )}
@@ -340,27 +322,26 @@ export default function RegisterScreen() {
           {step === 3 && (
             <View>
               <ThemedText style={styles.stepTitle}>프로필 정보를 입력해주세요</ThemedText>
-              <ThemedText style={[styles.stepSubtitle, { color: colors.subtleText }]}>
+              <ThemedText style={styles.stepSubtitle}>
                 닉네임과 프로필 이미지 URL을 입력해주세요.
               </ThemedText>
 
               {/* Nickname */}
               <View style={styles.inputGroup}>
-                <ThemedText style={[styles.label, { color: colors.subtleText }]}>닉네임</ThemedText>
+                <ThemedText style={styles.label}>닉네임</ThemedText>
                 <View style={[styles.inputContainer, {
-                  backgroundColor: colors.inputBg,
-                  borderColor: nameError ? colors.error : (isNameFocused ? colors.inputBorderActive : colors.inputBorder),
+                  borderColor: nameError ? styles.errorColor.color : (isNameFocused ? styles.inputBorderActive.color : styles.inputBorder.color),
                 }]}>
                   <Ionicons
                     name="person-outline"
                     size={18}
-                    color={isNameFocused ? colors.primary : colors.placeholder}
+                    color={isNameFocused ? styles.primaryColor.color : styles.placeholderIcon.color}
                     style={styles.inputIcon}
                   />
                   <TextInput
-                    style={[styles.input, { color: colors.inputText }]}
+                    style={styles.input}
                     placeholder="닉네임 입력 (최대 30자)"
-                    placeholderTextColor={colors.placeholder}
+                    placeholderTextColor={styles.placeholderIcon.color}
                     value={name}
                     onChangeText={setName}
                     maxLength={30}
@@ -370,7 +351,7 @@ export default function RegisterScreen() {
                   />
                 </View>
                 {!!nameError && (
-                  <ThemedText style={[styles.errorText, { color: colors.error }]}>
+                  <ThemedText style={[styles.errorText, { color: styles.errorColor.color }]}>
                     {nameError}
                   </ThemedText>
                 )}
@@ -378,21 +359,20 @@ export default function RegisterScreen() {
 
               {/* Profile Image URL */}
               <View style={styles.inputGroup}>
-                <ThemedText style={[styles.label, { color: colors.subtleText }]}>프로필 이미지 URL (선택)</ThemedText>
+                <ThemedText style={styles.label}>프로필 이미지 URL (선택)</ThemedText>
                 <View style={[styles.inputContainer, {
-                  backgroundColor: colors.inputBg,
-                  borderColor: isUrlFocused ? colors.inputBorderActive : colors.inputBorder,
+                  borderColor: isUrlFocused ? styles.inputBorderActive.color : styles.inputBorder.color,
                 }]}>
                   <Ionicons
                     name="image-outline"
                     size={18}
-                    color={isUrlFocused ? colors.primary : colors.placeholder}
+                    color={isUrlFocused ? styles.primaryColor.color : styles.placeholderIcon.color}
                     style={styles.inputIcon}
                   />
                   <TextInput
-                    style={[styles.input, { color: colors.inputText }]}
+                    style={styles.input}
                     placeholder="https://example.com/profile.png"
-                    placeholderTextColor={colors.placeholder}
+                    placeholderTextColor={styles.placeholderIcon.color}
                     value={profileImageUrl}
                     onChangeText={setProfileImageUrl}
                     keyboardType="url"
@@ -407,9 +387,9 @@ export default function RegisterScreen() {
 
           {step === 4 && (
             <View style={styles.successContainer}>
-              <Ionicons name="checkmark-circle" size={80} color={colors.success} />
+              <Ionicons name="checkmark-circle" size={80} color="#10B981" />
               <ThemedText style={styles.stepTitle}>가입이 완료되었습니다!</ThemedText>
-              <ThemedText style={[styles.stepSubtitle, { color: colors.subtleText }]}>
+              <ThemedText style={styles.stepSubtitle}>
                 {name}님, 환영합니다.{'\n'}이제 깨다의 3D 역설계 서비스를 이용해 보세요.
               </ThemedText>
             </View>
@@ -421,14 +401,14 @@ export default function RegisterScreen() {
             style={({ pressed }) => [
               styles.submitButton,
               {
-                backgroundColor: isNextDisabled() ? colors.inputBorder : (pressed ? colors.primaryDark : colors.primary),
+                backgroundColor: isNextDisabled() ? styles.inputBorder.color : (pressed ? '#D02E2E' : styles.primaryColor.color),
                 transform: [{ scale: pressed && !isNextDisabled() ? 0.98 : 1 }],
               },
             ]}
           >
             <ThemedText style={[
               styles.submitButtonText,
-              { color: isNextDisabled() ? colors.subtleText : '#FFFFFF' }
+              { color: isNextDisabled() ? styles.placeholderIcon.color : '#FFFFFF' }
             ]}>
               {step === 3 ? (isSubmitting ? '가입 진행 중...' : '가입하기') : step === 4 ? '로그인하러 가기' : '다음'}
             </ThemedText>
@@ -458,8 +438,8 @@ export default function RegisterScreen() {
             onPress={() => router.push('/login')}
             style={({ pressed }) => [styles.desktopHomeBtn, { opacity: pressed ? 0.6 : 1 }]}
           >
-            <ThemedText style={{ color: colors.subtleText, marginRight: 8, fontWeight: '600' }}>로그인</ThemedText>
-            <Ionicons name="arrow-forward" size={20} color={colors.subtleText} />
+            <ThemedText style={{ color: styles.placeholderIcon.color, marginRight: 8, fontWeight: '600' }}>로그인</ThemedText>
+            <Ionicons name="arrow-forward" size={20} color={styles.placeholderIcon.color} />
           </Pressable>
           {renderForm()}
         </KeyboardAvoidingView>
@@ -479,10 +459,28 @@ export default function RegisterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
+  iconColor: {
+    color: colors.text,
+  },
+  placeholderIcon: {
+    color: colors.textMuted,
+  },
+  primaryColor: {
+    color: colors.primary,
+  },
+  inputBorder: {
+    color: colors.border,
+  },
+  inputBorderActive: {
+    color: colors.primary,
+  },
+  errorColor: {
+    color: '#EF4444',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#0F1017',
+    backgroundColor: colors.background,
     overflow: 'hidden',
   },
   headerWrapper: {
@@ -499,12 +497,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1E2030',
+    backgroundColor: colors.cardSecondary,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: colors.text,
   },
   flex: {
     flex: 1,
@@ -539,8 +537,10 @@ const styles = StyleSheet.create({
   formCard: {
     borderRadius: 24,
     padding: 24,
+    backgroundColor: colors.card,
     borderWidth: 1.5,
-    borderColor: '#2A2D3E',
+    borderColor: colors.border,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.1,
     shadowRadius: 24,
@@ -549,11 +549,12 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: colors.text,
     marginBottom: 8,
   },
   stepSubtitle: {
     fontSize: 14,
+    color: colors.textMuted,
     marginBottom: 20,
   },
   inputGroup: {
@@ -561,6 +562,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
+    color: colors.textMuted,
     fontWeight: '700',
     marginBottom: 8,
     letterSpacing: 0.3,
@@ -568,6 +570,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: colors.card,
     borderRadius: 16,
     borderWidth: 1.5,
     paddingHorizontal: 14,
@@ -582,6 +585,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 15,
+    color: colors.text,
     height: '100%',
   },
   errorText: {
@@ -595,7 +599,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 24,
-    shadowColor: '#FF2E2E',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -615,7 +619,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     overflow: 'hidden',
-    backgroundColor: '#0F1017',
+    backgroundColor: colors.background,
   },
   leftPane: {
     flex: 1,
@@ -628,7 +632,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
     borderLeftWidth: 1,
-    borderLeftColor: '#2A2D3E',
+    borderLeftColor: colors.border,
   },
   gradient: {
     flex: 1,
@@ -648,7 +652,7 @@ const styles = StyleSheet.create({
   },
   brandingSubtitle: {
     fontSize: 16,
-    color: '#8B8FA3',
+    color: 'rgba(255,255,255,0.7)',
     textAlign: 'center',
     lineHeight: 24,
     maxWidth: 320,
@@ -661,10 +665,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 40,
     zIndex: 10,
-    backgroundColor: '#1E2030',
+    backgroundColor: colors.cardSecondary,
     paddingHorizontal: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#2A2D3E',
+    borderColor: colors.border,
   },
 });

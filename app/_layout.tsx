@@ -12,6 +12,7 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ThemeProvider } from '@/store/theme-store';
 import { AuthProvider } from '@/store/auth-context';
+import { ProgressProvider } from '@/store/progress-context';
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
@@ -21,6 +22,8 @@ function RootLayoutNav() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(auth)" />
+        <Stack.Screen name="create-post" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="edit-profile" options={{ presentation: 'modal' }} />
       </Stack>
       <StatusBar style="auto" />
     </NavigationThemeProvider>
@@ -31,7 +34,9 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <RootLayoutNav />
+        <ProgressProvider>
+          <RootLayoutNav />
+        </ProgressProvider>
       </ThemeProvider>
     </AuthProvider>
   );

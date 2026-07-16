@@ -3,69 +3,6 @@
 // 실제 API 연동 전 사용하는 목 데이터 중앙 관리 파일
 // ─────────────────────────────────────────────
 
-// ── 홈 피드 ──────────────────────────────────
-export interface FeedItem {
-  id: string;
-  userName: string;
-  userAvatar: string;
-  timeAgo: string;
-  projectTitle: string;
-  projectDesc: string;
-  projectImage: string;
-  likes: number;
-  isLiked: boolean;
-  isBookmarked: boolean;
-}
-
-export const MOCK_FEED: FeedItem[] = [
-  {
-    id: 'feed-1',
-    userName: 'MyNameIsYoonKo',
-    userAvatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-    timeAgo: 'about 1 hours',
-    projectTitle: 'Titanic',
-    projectDesc: '360 pcs',
-    projectImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=500&q=80',
-    likes: 128,
-    isLiked: false,
-    isBookmarked: false,
-  },
-  {
-    id: 'feed-2',
-    userName: 'MyNameIsYoonKo',
-    userAvatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-    timeAgo: 'about 3 hours',
-    projectTitle: 'Titanic',
-    projectDesc: '380 pcs',
-    projectImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=500&q=80',
-    likes: 95,
-    isLiked: false,
-    isBookmarked: false,
-  },
-  {
-    id: 'feed-3',
-    userName: 'MyNameIsYoonKo',
-    userAvatar: 'https://randomuser.me/api/portraits/men/76.jpg',
-    timeAgo: 'about 5 hours',
-    projectTitle: 'Titanic',
-    projectDesc: '360 pcs',
-    projectImage: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=500&q=80',
-    likes: 74,
-    isLiked: false,
-    isBookmarked: false,
-  },
-];
-
-// 홈 히어로 배너
-export const MOCK_HERO = {
-  badgeText: '🏆 이번 주 1위',
-  title: '고드룡',
-  image: 'https://images.unsplash.com/photo-1585366119957-e5733f3998bf?auto=format&fit=crop&w=800&q=80',
-  likes: 5204,
-  pcs: 7541,
-  pct: 99.4,
-};
-
 // ── 프로젝트 ──────────────────────────────────
 export interface Project {
   id: string;

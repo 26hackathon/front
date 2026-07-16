@@ -16,7 +16,7 @@ import {
 import { ScreenHeader } from '@/components/layout/screen-header';
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAppStyles } from '@/hooks/use-app-styles';
 
 type Tab = 'find-id' | 'find-password';
 
@@ -24,6 +24,7 @@ export default function AccountRecoveryScreen() {
   const [activeTab, setActiveTab] = useState<Tab>('find-id');
   const [tabWidth, setTabWidth] = useState(0);
   const slideAnim = useRef(new Animated.Value(0)).current;
+  const styles = useAppStyles(createStyles);
 
   const handleTabSwitch = (tab: Tab) => {
     setActiveTab(tab);
@@ -33,21 +34,6 @@ export default function AccountRecoveryScreen() {
       bounciness: 0,
       speed: 14,
     }).start();
-  };
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-
-  const colors = {
-    primary: '#6C63FF',
-    primaryDark: '#5A52D5',
-    inputBg: isDark ? '#1E2030' : '#F5F6FA',
-    inputBorder: isDark ? '#2A2D3E' : '#E4E6EF',
-    inputText: isDark ? '#ECEDEE' : '#11181C',
-    placeholder: isDark ? '#6B7280' : '#9CA3AF',
-    cardBg: isDark ? '#161825' : '#FFFFFF',
-    subtleText: isDark ? '#8B8FA3' : '#6B7280',
-    tabInactive: isDark ? '#2A2D3E' : '#F0F1F5',
-    tabInactiveText: isDark ? '#6B7280' : '#9CA3AF',
   };
 
   return (
@@ -65,7 +51,7 @@ export default function AccountRecoveryScreen() {
         >
           {/* Tab Switcher */}
           <View 
-            style={[styles.tabContainer, { backgroundColor: colors.tabInactive }]}
+            style={styles.tabContainer}
             onLayout={(e: LayoutChangeEvent) => {
               setTabWidth((e.nativeEvent.layout.width - 8) / 2); // 8 is total horizontal padding
             }}
@@ -74,7 +60,6 @@ export default function AccountRecoveryScreen() {
             <Animated.View
               style={[
                 styles.activeTabIndicator,
-                { backgroundColor: colors.primary },
                 {
                   transform: [{
                     translateX: slideAnim.interpolate({
@@ -93,7 +78,7 @@ export default function AccountRecoveryScreen() {
               <ThemedText
                 style={[
                   styles.tabText,
-                  { color: activeTab === 'find-id' ? '#FFFFFF' : colors.tabInactiveText },
+                  { color: activeTab === 'find-id' ? '#FFFFFF' : styles.tabInactiveText.color },
                 ]}
               >
                 아이디 찾기
@@ -106,7 +91,7 @@ export default function AccountRecoveryScreen() {
               <ThemedText
                 style={[
                   styles.tabText,
-                  { color: activeTab === 'find-password' ? '#FFFFFF' : colors.tabInactiveText },
+                  { color: activeTab === 'find-password' ? '#FFFFFF' : styles.tabInactiveText.color },
                 ]}
               >
                 비밀번호 찾기
@@ -115,14 +100,11 @@ export default function AccountRecoveryScreen() {
           </View>
 
           {/* Content */}
-          <View style={[styles.formCard, {
-            backgroundColor: colors.cardBg,
-            shadowColor: isDark ? '#000' : '#6C63FF',
-          }]}>
+          <View style={styles.formCard}>
             {activeTab === 'find-id' ? (
-              <FindIdForm colors={colors} />
+              <FindIdForm styles={styles} />
             ) : (
-              <FindPasswordForm colors={colors} />
+              <FindPasswordForm styles={styles} />
             )}
           </View>
         </ScrollView>
@@ -131,21 +113,9 @@ export default function AccountRecoveryScreen() {
   );
 }
 
-// ─── Find ID Form ────────────────────────────────────────────
-
-type FormColors = {
-  primary: string;
-  primaryDark: string;
-  inputBg: string;
-  inputBorder: string;
-  inputText: string;
-  placeholder: string;
-  subtleText: string;
-};
-
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function FindIdForm({ colors }: { colors: FormColors }) {
+function FindIdForm({ styles }: { styles: any }) {
   const [email, setEmail] = useState('');
   const emailError = email.length > 0 && !EMAIL_REGEX.test(email);
 
@@ -162,29 +132,28 @@ function FindIdForm({ colors }: { colors: FormColors }) {
   return (
     <View>
       <View style={styles.formHeader}>
-        <Ionicons name="search-outline" size={36} color={colors.primary} />
+        <Ionicons name="search-outline" size={36} color={styles.primaryColor.color} />
         <ThemedText style={styles.formTitle}>아이디 찾기</ThemedText>
-        <ThemedText style={[styles.formDescription, { color: colors.subtleText }]}>
+        <ThemedText style={styles.formDescription}>
           가입 시 등록한 이메일을 입력하시면{'\n'}아이디를 알려드립니다.
         </ThemedText>
       </View>
 
       <View style={styles.inputGroup}>
-        <ThemedText style={[styles.label, { color: colors.subtleText }]}>이메일</ThemedText>
+        <ThemedText style={styles.label}>이메일</ThemedText>
         <View style={[styles.inputContainer, {
-          backgroundColor: colors.inputBg,
-          borderColor: emailError ? '#EF4444' : colors.inputBorder,
+          borderColor: emailError ? '#EF4444' : styles.inputBorder.color,
         }]}>
           <Ionicons
             name="mail-outline"
             size={20}
-            color={emailError ? '#EF4444' : colors.placeholder}
+            color={emailError ? '#EF4444' : styles.placeholderIcon.color}
             style={styles.inputIcon}
           />
           <TextInput
-            style={[styles.input, { color: colors.inputText }]}
+            style={styles.input}
             placeholder="이메일을 입력하세요"
-            placeholderTextColor={colors.placeholder}
+            placeholderTextColor={styles.placeholderIcon.color}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -204,7 +173,7 @@ function FindIdForm({ colors }: { colors: FormColors }) {
         style={({ pressed }) => [
           styles.submitButton,
           {
-            backgroundColor: pressed ? colors.primaryDark : colors.primary,
+            backgroundColor: pressed ? '#D02E2E' : styles.primaryColor.color,
             transform: [{ scale: pressed ? 0.98 : 1 }],
           },
         ]}
@@ -217,7 +186,7 @@ function FindIdForm({ colors }: { colors: FormColors }) {
 
 // ─── Find Password Form ──────────────────────────────────────
 
-function FindPasswordForm({ colors }: { colors: FormColors }) {
+function FindPasswordForm({ styles }: { styles: any }) {
   const [userId, setUserId] = useState('');
   const [email, setEmail] = useState('');
   const [showEmailField, setShowEmailField] = useState(false);
@@ -244,9 +213,9 @@ function FindPasswordForm({ colors }: { colors: FormColors }) {
   return (
     <View>
       <View style={styles.formHeader}>
-        <Ionicons name="key-outline" size={36} color={colors.primary} />
+        <Ionicons name="key-outline" size={36} color={styles.primaryColor.color} />
         <ThemedText style={styles.formTitle}>비밀번호 찾기</ThemedText>
-        <ThemedText style={[styles.formDescription, { color: colors.subtleText }]}>
+        <ThemedText style={styles.formDescription}>
           {!showEmailField
             ? '아이디를 먼저 입력해주세요.'
             : '가입 시 등록한 이메일을 입력해주세요.'}
@@ -255,21 +224,18 @@ function FindPasswordForm({ colors }: { colors: FormColors }) {
 
       {/* User ID Input */}
       <View style={styles.inputGroup}>
-        <ThemedText style={[styles.label, { color: colors.subtleText }]}>아이디</ThemedText>
-        <View style={[styles.inputContainer, {
-          backgroundColor: colors.inputBg,
-          borderColor: colors.inputBorder,
-        }]}>
+        <ThemedText style={styles.label}>아이디</ThemedText>
+        <View style={styles.inputContainer}>
           <Ionicons
             name="person-outline"
             size={20}
-            color={colors.placeholder}
+            color={styles.placeholderIcon.color}
             style={styles.inputIcon}
           />
           <TextInput
-            style={[styles.input, { color: colors.inputText }]}
+            style={styles.input}
             placeholder="아이디를 입력하세요"
-            placeholderTextColor={colors.placeholder}
+            placeholderTextColor={styles.placeholderIcon.color}
             value={userId}
             onChangeText={(text) => {
               setUserId(text);
@@ -285,21 +251,20 @@ function FindPasswordForm({ colors }: { colors: FormColors }) {
       {/* Email Input (shown after ID entered) */}
       {showEmailField && (
         <View style={styles.inputGroup}>
-          <ThemedText style={[styles.label, { color: colors.subtleText }]}>이메일</ThemedText>
+          <ThemedText style={styles.label}>이메일</ThemedText>
           <View style={[styles.inputContainer, {
-            backgroundColor: colors.inputBg,
-            borderColor: emailError ? '#EF4444' : colors.inputBorder,
+            borderColor: emailError ? '#EF4444' : styles.inputBorder.color,
           }]}>
             <Ionicons
               name="mail-outline"
               size={20}
-              color={emailError ? '#EF4444' : colors.placeholder}
+              color={emailError ? '#EF4444' : styles.placeholderIcon.color}
               style={styles.inputIcon}
             />
             <TextInput
-              style={[styles.input, { color: colors.inputText }]}
+              style={styles.input}
               placeholder="이메일을 입력하세요"
-              placeholderTextColor={colors.placeholder}
+              placeholderTextColor={styles.placeholderIcon.color}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -321,7 +286,7 @@ function FindPasswordForm({ colors }: { colors: FormColors }) {
         style={({ pressed }) => [
           styles.submitButton,
           {
-            backgroundColor: pressed ? colors.primaryDark : colors.primary,
+            backgroundColor: pressed ? '#D02E2E' : styles.primaryColor.color,
             transform: [{ scale: pressed ? 0.98 : 1 }],
           },
         ]}
@@ -339,7 +304,7 @@ function FindPasswordForm({ colors }: { colors: FormColors }) {
             { opacity: pressed ? 0.6 : 1 },
           ]}
         >
-          <ThemedText style={[styles.backLinkText, { color: colors.subtleText }]}>
+          <ThemedText style={styles.backLinkText}>
             아이디 다시 입력
           </ThemedText>
         </Pressable>
@@ -350,9 +315,22 @@ function FindPasswordForm({ colors }: { colors: FormColors }) {
 
 // ─── Styles ──────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
+  tabInactiveText: {
+    color: colors.textMuted,
+  },
+  primaryColor: {
+    color: colors.primary,
+  },
+  inputBorder: {
+    color: colors.border,
+  },
+  placeholderIcon: {
+    color: colors.textMuted,
+  },
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   flex: {
     flex: 1,
@@ -371,6 +349,7 @@ const styles = StyleSheet.create({
     padding: 4,
     marginBottom: 24,
     position: 'relative',
+    backgroundColor: colors.cardSecondary,
   },
   activeTabIndicator: {
     position: 'absolute',
@@ -379,7 +358,8 @@ const styles = StyleSheet.create({
     left: 4,
     width: '50%',
     borderRadius: 10,
-    shadowColor: '#000',
+    backgroundColor: colors.primary,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
@@ -399,6 +379,10 @@ const styles = StyleSheet.create({
   formCard: {
     borderRadius: 20,
     padding: 24,
+    backgroundColor: colors.card,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
     shadowRadius: 24,
@@ -416,6 +400,7 @@ const styles = StyleSheet.create({
   },
   formDescription: {
     fontSize: 14,
+    color: colors.textMuted,
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -424,6 +409,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
+    color: colors.textMuted,
     fontWeight: '600',
     marginBottom: 8,
     letterSpacing: 0.3,
@@ -432,8 +418,10 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: colors.cardSecondary,
     borderRadius: 14,
     borderWidth: 1.5,
+    borderColor: colors.border,
     paddingHorizontal: 14,
     height: 52,
   },
@@ -443,6 +431,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
+    color: colors.text,
     height: '100%',
   },
   errorText: {
@@ -469,5 +458,6 @@ const styles = StyleSheet.create({
   },
   backLinkText: {
     fontSize: 14,
+    color: colors.textMuted,
   },
 });
