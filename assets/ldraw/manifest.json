@@ -1,0 +1,314 @@
+{
+  "generatedAt": "2026-07-16T18:14:07.970Z",
+  "count": 44,
+  "parts": [
+    {
+      "partId": "15462",
+      "colorCode": "70",
+      "model": "models/15462-70.ldr",
+      "part": "parts/15462.dat",
+      "source": "https://library.ldraw.org/library/official/parts/15462.dat"
+    },
+    {
+      "partId": "24316",
+      "colorCode": "70",
+      "model": "models/24316-70.ldr",
+      "part": "parts/24316.dat",
+      "source": "https://library.ldraw.org/library/official/parts/24316.dat"
+    },
+    {
+      "partId": "61903",
+      "colorCode": "71",
+      "model": "models/61903-71.ldr",
+      "part": "parts/61903.dat",
+      "source": "https://library.ldraw.org/library/official/parts/61903.dat"
+    },
+    {
+      "partId": "18677",
+      "colorCode": "71",
+      "model": "models/18677-71.ldr",
+      "part": "parts/18677.dat",
+      "source": "https://library.ldraw.org/library/official/parts/18677.dat"
+    },
+    {
+      "partId": "85943",
+      "colorCode": "72",
+      "model": "models/85943-72.ldr",
+      "part": "parts/85943.dat",
+      "source": "https://library.ldraw.org/library/official/parts/85943.dat"
+    },
+    {
+      "partId": "15714",
+      "colorCode": "2",
+      "model": "models/15714-2.ldr",
+      "part": "parts/15714.dat",
+      "source": "https://library.ldraw.org/library/unofficial/parts/15714.dat"
+    },
+    {
+      "partId": "61678",
+      "colorCode": "2",
+      "model": "models/61678-2.ldr",
+      "part": "parts/61678.dat",
+      "source": "https://library.ldraw.org/library/official/parts/61678.dat"
+    },
+    {
+      "partId": "11477",
+      "colorCode": "2",
+      "model": "models/11477-2.ldr",
+      "part": "parts/11477.dat",
+      "source": "https://library.ldraw.org/library/official/parts/11477.dat"
+    },
+    {
+      "partId": "15068",
+      "colorCode": "2",
+      "model": "models/15068-2.ldr",
+      "part": "parts/15068.dat",
+      "source": "https://library.ldraw.org/library/official/parts/15068.dat"
+    },
+    {
+      "partId": "2654",
+      "colorCode": "0",
+      "model": "models/2654-0.ldr",
+      "part": "parts/2654.dat",
+      "source": "https://library.ldraw.org/library/official/parts/2654.dat"
+    },
+    {
+      "partId": "18654",
+      "colorCode": "19",
+      "model": "models/18654-19.ldr",
+      "part": "parts/18654.dat",
+      "source": "https://library.ldraw.org/library/official/parts/18654.dat"
+    },
+    {
+      "partId": "4519",
+      "colorCode": "4",
+      "model": "models/4519-4.ldr",
+      "part": "parts/4519.dat",
+      "source": "https://library.ldraw.org/library/official/parts/4519.dat"
+    },
+    {
+      "partId": "3705",
+      "colorCode": "14",
+      "model": "models/3705-14.ldr",
+      "part": "parts/3705.dat",
+      "source": "https://library.ldraw.org/library/official/parts/3705.dat"
+    },
+    {
+      "partId": "32062",
+      "colorCode": "4",
+      "model": "models/32062-4.ldr",
+      "part": "parts/32062.dat",
+      "source": "https://library.ldraw.org/library/official/parts/32062.dat"
+    },
+    {
+      "partId": "92280",
+      "colorCode": "0",
+      "model": "models/92280-0.ldr",
+      "part": "parts/92280.dat",
+      "source": "https://library.ldraw.org/library/official/parts/92280.dat"
+    },
+    {
+      "partId": "3022",
+      "colorCode": "71",
+      "model": "models/3022-71.ldr",
+      "part": "parts/3022.dat",
+      "source": "https://library.ldraw.org/library/official/parts/3022.dat"
+    },
+    {
+      "partId": "3666",
+      "colorCode": "2",
+      "model": "models/3666-2.ldr",
+      "part": "parts/3666.dat",
+      "source": "https://library.ldraw.org/library/official/parts/3666.dat"
+    },
+    {
+      "partId": "3460",
+      "colorCode": "72",
+      "model": "models/3460-72.ldr",
+      "part": "parts/3460.dat",
+      "source": "https://library.ldraw.org/library/official/parts/3460.dat"
+    },
+    {
+      "partId": "2420",
+      "colorCode": "2",
+      "model": "models/2420-2.ldr",
+      "part": "parts/2420.dat",
+      "source": "https://library.ldraw.org/library/official/parts/2420.dat"
+    },
+    {
+      "partId": "3623",
+      "colorCode": "72",
+      "model": "models/3623-72.ldr",
+      "part": "parts/3623.dat",
+      "source": "https://library.ldraw.org/library/official/parts/3623.dat"
+    },
+    {
+      "partId": "3023",
+      "colorCode": "27",
+      "model": "models/3023-27.ldr",
+      "part": "parts/3023.dat",
+      "source": "https://library.ldraw.org/library/official/parts/3023.dat"
+    },
+    {
+      "partId": "3023",
+      "colorCode": "14",
+      "model": "models/3023-14.ldr",
+      "part": "parts/3023.dat",
+      "source": "https://library.ldraw.org/library/official/parts/3023.dat"
+    },
+    {
+      "partId": "15570",
+      "colorCode": "18",
+      "model": "models/15570-18.ldr",
+      "part": "parts/15570.dat",
+      "source": "https://library.ldraw.org/library/official/parts/15570.dat"
+    },
+    {
+      "partId": "32123b",
+      "colorCode": "14",
+      "model": "models/32123b-14.ldr",
+      "part": "parts/32123b.dat",
+      "source": "https://library.ldraw.org/library/official/parts/32123b.dat"
+    },
+    {
+      "partId": "32198",
+      "colorCode": "19",
+      "model": "models/32198-19.ldr",
+      "part": "parts/32198.dat",
+      "source": "https://library.ldraw.org/library/official/parts/32198.dat"
+    },
+    {
+      "partId": "6589",
+      "colorCode": "19",
+      "model": "models/6589-19.ldr",
+      "part": "parts/6589.dat",
+      "source": "https://library.ldraw.org/library/official/parts/6589.dat"
+    },
+    {
+      "partId": "3700",
+      "colorCode": "0",
+      "model": "models/3700-0.ldr",
+      "part": "parts/3700.dat",
+      "source": "https://library.ldraw.org/library/official/parts/3700.dat"
+    },
+    {
+      "partId": "32000",
+      "colorCode": "72",
+      "model": "models/32000-72.ldr",
+      "part": "parts/32000.dat",
+      "source": "https://library.ldraw.org/library/official/parts/32000.dat"
+    },
+    {
+      "partId": "32064",
+      "colorCode": "2",
+      "model": "models/32064-2.ldr",
+      "part": "parts/32064.dat",
+      "source": "https://library.ldraw.org/library/official/parts/32064.dat"
+    },
+    {
+      "partId": "15672",
+      "colorCode": "27",
+      "model": "models/15672-27.ldr",
+      "part": "parts/15672.dat",
+      "source": "https://library.ldraw.org/library/official/parts/15672.dat"
+    },
+    {
+      "partId": "3040",
+      "colorCode": "27",
+      "model": "models/3040-27.ldr",
+      "part": "parts/3040.dat",
+      "source": "https://library.ldraw.org/library/official/parts/3040.dat"
+    },
+    {
+      "partId": "18862",
+      "colorCode": "2",
+      "model": "models/18862-2.ldr",
+      "part": "parts/18862.dat",
+      "source": "https://library.ldraw.org/library/official/parts/18862.dat"
+    },
+    {
+      "partId": "6091",
+      "colorCode": "2",
+      "model": "models/6091-2.ldr",
+      "part": "parts/6091.dat",
+      "source": "https://library.ldraw.org/library/official/parts/6091.dat"
+    },
+    {
+      "partId": "2780",
+      "colorCode": "0",
+      "model": "models/2780-0.ldr",
+      "part": "parts/2780.dat",
+      "source": "https://library.ldraw.org/library/official/parts/2780.dat"
+    },
+    {
+      "partId": "391",
+      "colorCode": "19",
+      "model": "models/391-19.ldr",
+      "part": "parts/391.dat",
+      "source": "https://library.ldraw.org/library/official/parts/391.dat"
+    },
+    {
+      "partId": "43719",
+      "colorCode": "0",
+      "model": "models/43719-0.ldr",
+      "part": "parts/43719.dat",
+      "source": "https://library.ldraw.org/library/official/parts/43719.dat"
+    },
+    {
+      "partId": "3021",
+      "colorCode": "2",
+      "model": "models/3021-2.ldr",
+      "part": "parts/3021.dat",
+      "source": "https://library.ldraw.org/library/official/parts/3021.dat"
+    },
+    {
+      "partId": "33909",
+      "colorCode": "0",
+      "model": "models/33909-0.ldr",
+      "part": "parts/33909.dat",
+      "source": "https://library.ldraw.org/library/official/parts/33909.dat"
+    },
+    {
+      "partId": "51739",
+      "colorCode": "0",
+      "model": "models/51739-0.ldr",
+      "part": "parts/51739.dat",
+      "source": "https://library.ldraw.org/library/official/parts/51739.dat"
+    },
+    {
+      "partId": "30136",
+      "colorCode": "0",
+      "model": "models/30136-0.ldr",
+      "part": "parts/30136.dat",
+      "source": "https://library.ldraw.org/library/official/parts/30136.dat"
+    },
+    {
+      "partId": "4854",
+      "colorCode": "72",
+      "model": "models/4854-72.ldr",
+      "part": "parts/4854.dat",
+      "source": "https://library.ldraw.org/library/official/parts/4854.dat"
+    },
+    {
+      "partId": "32014",
+      "colorCode": "71",
+      "model": "models/32014-71.ldr",
+      "part": "parts/32014.dat",
+      "source": "https://library.ldraw.org/library/official/parts/32014.dat"
+    },
+    {
+      "partId": "22961",
+      "colorCode": "71",
+      "model": "models/22961-71.ldr",
+      "part": "parts/22961.dat",
+      "source": "https://library.ldraw.org/library/official/parts/22961.dat"
+    },
+    {
+      "partId": "11458",
+      "colorCode": "72",
+      "model": "models/11458-72.ldr",
+      "part": "parts/11458.dat",
+      "source": "https://library.ldraw.org/library/official/parts/11458.dat"
+    }
+  ]
+}

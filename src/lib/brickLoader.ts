@@ -27,6 +27,7 @@ const LEGO_PARTS: Record<string, LDrawPart> = {
   '3024': { id: '3024', name: 'Plate 1×1', category: '플레이트', w: 1, d: 1, plates: 1, shape: 'plate', studs: true },
   '3023': { id: '3023', name: 'Plate 1×2', category: '플레이트', w: 1, d: 2, plates: 1, shape: 'plate', studs: true },
   '3710': { id: '3710', name: 'Plate 1×4', category: '플레이트', w: 1, d: 4, plates: 1, shape: 'plate', studs: true },
+  '3666': { id: '3666', name: 'Plate 1×6', category: '플레이트', w: 1, d: 6, plates: 1, shape: 'plate', studs: true },
   '3022': { id: '3022', name: 'Plate 2×2', category: '플레이트', w: 2, d: 2, plates: 1, shape: 'plate', studs: true },
   '3021': { id: '3021', name: 'Plate 2×3', category: '플레이트', w: 2, d: 3, plates: 1, shape: 'plate', studs: true },
   '3020': { id: '3020', name: 'Plate 2×4', category: '플레이트', w: 2, d: 4, plates: 1, shape: 'plate', studs: true },
@@ -60,7 +61,7 @@ const LEGO_PARTS: Record<string, LDrawPart> = {
 const LDRAW_COLOR_MAP: Record<string, { r: number; g: number; b: number }> = {
   '0': { r: 0, g: 0, b: 0 },       // Black
   '1': { r: 7, g: 96, b: 233 },    // Blue
-  '2': { r: 11, g: 86, b: 161 },   // Green
+  '2': { r: 37, g: 122, b: 62 },   // Green
   '3': { r: 199, g: 83, b: 5 },    // Yellow
   '4': { r: 200, g: 16, b: 46 },   // Red
   '5': { r: 115, g: 41, b: 28 },   // Brown
@@ -74,6 +75,7 @@ const LDRAW_COLOR_MAP: Record<string, { r: number; g: number; b: number }> = {
   '13': { r: 199, g: 83, b: 5 },   // Trans Yellow
   '14': { r: 200, g: 16, b: 46 },  // Trans Red
   '15': { r: 233, g: 233, b: 233 }, // Trans White
+  '27': { r: 187, g: 233, b: 11 },  // Lime
 };
 
 /**

@@ -49,6 +49,7 @@ export default function BrickViewer({ bricks }: BrickViewerProps) {
   const ldrawRequestCacheRef = useRef(new Map<string, Promise<THREE.Group>>());
 
   const panResponder = useMemo(() => PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: (_, gesture) =>
       Math.abs(gesture.dx) > 3 || Math.abs(gesture.dy) > 3 || gesture.numberActiveTouches > 1,
     onPanResponderGrant: event => {
@@ -79,7 +80,7 @@ export default function BrickViewer({ bricks }: BrickViewerProps) {
       }
 
       setRotation({
-        x: THREE.MathUtils.clamp(gestureRotationRef.current.x - gesture.dy * 0.35, 12, 168),
+        x: THREE.MathUtils.clamp(gestureRotationRef.current.x - gesture.dy * 0.45, 1, 179),
         y: gestureRotationRef.current.y + gesture.dx * 0.45,
         z: 0,
       });
@@ -221,7 +222,7 @@ export default function BrickViewer({ bricks }: BrickViewerProps) {
       InteractionManager.runAfterInteractions(() => resolve());
     });
 
-    await Promise.allSettled(addedEntries.map(async ({ brick, color, key, container }) => {
+    await Promise.allSettled(addedEntries.map(async ({ brick, color, key, container, fallback }) => {
       if (!container) return;
       const ldrawModel = await createLegoBrickMesh(
         brick.brickId,
@@ -247,6 +248,9 @@ export default function BrickViewer({ bricks }: BrickViewerProps) {
       // container without changing the proven camera framing.
       if (!ldrawBounds.isEmpty() && Number.isFinite(maxDimension) && maxDimension < 20) {
         container.add(ldrawModel);
+        // The fallback occupies the same physical volume. Once valid LDraw
+        // geometry is attached, hide it to avoid duplicate faces and z-fighting.
+        fallback.visible = false;
       }
     }));
   };
@@ -452,8 +456,15 @@ export default function BrickViewer({ bricks }: BrickViewerProps) {
   }, [bricks]);
 
   return (
-    <View style={styles.container} {...panResponder.panHandlers}>
+    <View style={styles.container}>
       <GLView style={styles.canvas} onContextCreate={onContextCreate} />
+      <View
+        accessibilityLabel="3D 브릭 회전 영역"
+        accessibilityHint="한 손가락으로 드래그해 모든 면을 회전하고 두 손가락으로 확대하거나 축소합니다"
+        collapsable={false}
+        style={styles.gestureSurface}
+        {...panResponder.panHandlers}
+      />
       
       <View style={styles.zoomControls}>
         <Pressable 
@@ -472,6 +483,16 @@ export default function BrickViewer({ bricks }: BrickViewerProps) {
           <Ionicons name="search-outline" size={17} color="#FFFFFF" />
           <Ionicons name="add" size={9} color="#FFFFFF" style={styles.zoomSign} />
         </Pressable>
+        <Pressable
+          accessibilityLabel="3D 시점 초기화"
+          style={styles.zoomButton}
+          onPress={() => {
+            setRotation({ x: 62, y: 45, z: 0 });
+            setCameraDistance(10);
+          }}
+        >
+          <Ionicons name="refresh" size={17} color="#FFFFFF" />
+        </Pressable>
       </View>
     </View>
   );
@@ -484,6 +505,10 @@ const styles = StyleSheet.create({
   canvas: {
     flex: 1,
     backgroundColor: '#D9ECFF',
+  },
+  gestureSurface: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
   },
   zoomControls: {
     position: 'absolute',

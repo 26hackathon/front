@@ -9,15 +9,37 @@ import { ThemedText } from '@/components/ui/themed-text';
 import { MOCK_ASSEMBLY_STEPS } from '@/data/mockData';
 import { BrickData } from '@/types';
 
-const ASSEMBLY_BRICKS: BrickData[] = [
-  { brickId: '3020', colorCode: '7', position: { x: 0, y: 0, z: 0 }, rotation: { x: 0, y: 0, z: 0 } },
-  { brickId: '3023', colorCode: '4', position: { x: -0.5, y: 0.4, z: 0 }, rotation: { x: 0, y: 90, z: 0 } },
-  { brickId: '3023', colorCode: '4', position: { x: 0.5, y: 0.4, z: 0 }, rotation: { x: 0, y: 90, z: 0 } },
-  { brickId: '3022', colorCode: '6', position: { x: 0, y: 0.8, z: 0 }, rotation: { x: 0, y: 0, z: 0 } },
-  { brickId: '3023', colorCode: '4', position: { x: 0, y: 1.2, z: 0 }, rotation: { x: 0, y: 0, z: 0 } },
-  { brickId: '3710', colorCode: '7', position: { x: 0, y: 1.6, z: 0 }, rotation: { x: 0, y: 90, z: 0 } },
-  { brickId: '3024', colorCode: '4', position: { x: 0, y: 2, z: 0 }, rotation: { x: 0, y: 0, z: 0 } },
+const GREEN_BASE: BrickData = {
+  brickId: '3666',
+  colorCode: '2',
+  position: { x: 0, y: 0, z: 0 },
+  rotation: { x: 0, y: 0, z: 0 },
+};
+
+const ASSEMBLY_STEP_BRICKS: BrickData[][] = [
+  // Photo 1: green 1×6 plate.
+  [GREEN_BASE],
+  // Photo 2: lime 1×2 plate on the end of the base.
+  [
+    GREEN_BASE,
+    { brickId: '3023', colorCode: '27', position: { x: 0, y: 0.4, z: -2 }, rotation: { x: 0, y: 0, z: 0 } },
+  ],
+  // Photo 3: green support beneath the lime plate, offset by one stud.
+  [
+    GREEN_BASE,
+    { brickId: '3023', colorCode: '2', position: { x: 0, y: 0.4, z: -2 }, rotation: { x: 0, y: 0, z: 0 } },
+    { brickId: '3023', colorCode: '27', position: { x: 0, y: 0.8, z: -2.5 }, rotation: { x: 0, y: 0, z: 0 } },
+  ],
+  // Photo 4: green 2×3 plate crossing the base.
+  [
+    GREEN_BASE,
+    { brickId: '3023', colorCode: '2', position: { x: 0, y: 0.4, z: -2 }, rotation: { x: 0, y: 0, z: 0 } },
+    { brickId: '3023', colorCode: '27', position: { x: 0, y: 0.8, z: -2.5 }, rotation: { x: 0, y: 0, z: 0 } },
+    { brickId: '3021', colorCode: '2', position: { x: 0, y: 0.4, z: 0.5 }, rotation: { x: 0, y: 90, z: 0 } },
+  ],
 ];
+
+const ASSEMBLY_STEP_COUNT = ASSEMBLY_STEP_BRICKS.length;
 
 const ASSEMBLY_PROGRESS_KEY = 'assembly-progress-step';
 
@@ -44,10 +66,7 @@ export default function AssemblyScreen() {
   const [activeStepIdx, setActiveStepIdx] = useState(0);
   const [hasLoadedProgress, setHasLoadedProgress] = useState(false);
   const currentStep = MOCK_ASSEMBLY_STEPS[activeStepIdx];
-  const visibleBricks = useMemo(
-    () => ASSEMBLY_BRICKS.slice(0, activeStepIdx + 1),
-    [activeStepIdx]
-  );
+  const visibleBricks = useMemo(() => ASSEMBLY_STEP_BRICKS[activeStepIdx], [activeStepIdx]);
 
   useEffect(() => {
     let isMounted = true;
@@ -60,7 +79,7 @@ export default function AssemblyScreen() {
         const hasInProgressAssembly =
           savedStepIdx !== null &&
           savedStepIdx > 0 &&
-          savedStepIdx < MOCK_ASSEMBLY_STEPS.length;
+          savedStepIdx < ASSEMBLY_STEP_COUNT;
 
         if (!hasInProgressAssembly) {
           setHasLoadedProgress(true);
@@ -111,7 +130,7 @@ export default function AssemblyScreen() {
 
   const handlePrev = () => setActiveStepIdx(index => Math.max(0, index - 1));
   const handleNext = () =>
-    setActiveStepIdx(index => Math.min(MOCK_ASSEMBLY_STEPS.length - 1, index + 1));
+    setActiveStepIdx(index => Math.min(ASSEMBLY_STEP_COUNT - 1, index + 1));
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -124,7 +143,7 @@ export default function AssemblyScreen() {
             <View
               style={[
                 styles.progressFill,
-                { width: `${((activeStepIdx + 1) / MOCK_ASSEMBLY_STEPS.length) * 100}%` },
+                { width: `${((activeStepIdx + 1) / ASSEMBLY_STEP_COUNT) * 100}%` },
               ]}
             />
           </View>
@@ -168,16 +187,16 @@ export default function AssemblyScreen() {
 
           <Pressable
             accessibilityLabel="다음 단계"
-            disabled={activeStepIdx === MOCK_ASSEMBLY_STEPS.length - 1}
+            disabled={activeStepIdx === ASSEMBLY_STEP_COUNT - 1}
             onPress={handleNext}
             style={({ pressed }) => [
               styles.nextButton,
-              activeStepIdx === MOCK_ASSEMBLY_STEPS.length - 1 && styles.disabledButton,
+              activeStepIdx === ASSEMBLY_STEP_COUNT - 1 && styles.disabledButton,
               pressed && styles.pressedButton,
             ]}
           >
             <ThemedText style={styles.nextButtonText}>
-              {activeStepIdx === MOCK_ASSEMBLY_STEPS.length - 1 ? '조립 완료' : '다음 단계'}
+              {activeStepIdx === ASSEMBLY_STEP_COUNT - 1 ? '조립 완료' : '다음 단계'}
             </ThemedText>
             <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
           </Pressable>
