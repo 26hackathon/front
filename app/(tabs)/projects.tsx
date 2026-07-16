@@ -1,18 +1,20 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  ScrollView,
-  Pressable,
-  Image,
-  Platform,
+    Image,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
 
 export default function ProjectsScreen() {
+  const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<'all' | 'doing' | 'assembling' | 'done'>('all');
 
   const projects = [
@@ -74,7 +76,10 @@ export default function ProjectsScreen() {
             <Pressable style={styles.iconCircle}>
               <Ionicons name="grid" size={16} color="#8B8FA3" />
             </Pressable>
-            <Pressable style={[styles.iconCircle, { backgroundColor: '#FF5C5C' }]}>
+            <Pressable
+              onPress={() => router.push({ pathname: '/scan', params: { entry: 'project-create' } })}
+              style={[styles.iconCircle, { backgroundColor: '#FF5C5C' }]}
+            >
               <Ionicons name="add" size={20} color="#FFFFFF" />
             </Pressable>
           </View>

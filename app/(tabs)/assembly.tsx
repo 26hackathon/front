@@ -4,15 +4,16 @@ import {
   View,
   ScrollView,
   Pressable,
-  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
+import { Assembly3DViewer } from '@/features/assembly/components/assembly-3d-viewer';
 
 export default function AssemblyScreen() {
   const [activeStep, setActiveStep] = useState(4);
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   const handlePrev = () => {
     if (activeStep > 1) setActiveStep(activeStep - 1);
@@ -39,10 +40,13 @@ export default function AssemblyScreen() {
           
           {/* Zoom controls */}
           <View style={styles.zoomControls}>
-            <Pressable style={styles.zoomBtn}>
+            <Pressable onPress={() => setZoomLevel(1)} style={styles.zoomBtn}>
               <Ionicons name="search-outline" size={16} color="#FFFFFF" />
             </Pressable>
-            <Pressable style={styles.zoomBtn}>
+            <Pressable
+              onPress={() => setZoomLevel((current) => Math.min(1.75, current + 0.15))}
+              style={styles.zoomBtn}
+            >
               <Ionicons name="add-outline" size={16} color="#FFFFFF" />
             </Pressable>
           </View>
@@ -52,17 +56,12 @@ export default function AssemblyScreen() {
             <ThemedText style={styles.stepTagText}>Step 0{activeStep}</ThemedText>
           </View>
 
-          {/* Main 3D Lego Instruction Mockup Image */}
-          <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1560942485-b2a11cc13456?auto=format&fit=crop&w=600&q=80' }}
-            style={styles.instructionImage}
-            resizeMode="contain"
-          />
+          <Assembly3DViewer step={activeStep} zoomLevel={zoomLevel} style={styles.viewer} />
 
           {/* Assembly direction indicators */}
           <View style={styles.guideContainer}>
             <Ionicons name="arrow-down" size={32} color="#FF5C5C" />
-            <ThemedText style={styles.guideText}>돌기에 맞춰 수직으로 결합</ThemedText>
+            <ThemedText style={styles.guideText}>LDraw 기준으로 브릭이 쌓입니다</ThemedText>
           </View>
         </View>
 
@@ -173,10 +172,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800',
   },
-  instructionImage: {
-    width: '80%',
-    height: '60%',
-    marginTop: -20,
+  viewer: {
+    width: '100%',
+    height: '100%',
   },
   guideContainer: {
     position: 'absolute',
