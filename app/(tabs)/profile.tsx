@@ -13,6 +13,15 @@ import { useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
 import { useAuth } from '@/store/auth-context';
+import {
+  MOCK_USER_STATS,
+  MOCK_ACTIVITY,
+  MOCK_APP_SETTINGS,
+  MOCK_ACCOUNT_SETTINGS,
+  MOCK_ACTIVE_PROJECT,
+  ActivityItem,
+  SettingItem,
+} from '@/data/mockData';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -89,36 +98,33 @@ export default function ProfileScreen() {
         {user && (
           <View style={styles.statsCard}>
             <View style={styles.statCol}>
-              <ThemedText style={styles.statValue}>12</ThemedText>
+              <ThemedText style={styles.statValue}>{MOCK_USER_STATS.completedSets}</ThemedText>
               <ThemedText style={styles.statLabel}>완성한 세트</ThemedText>
             </View>
             <View style={styles.dividerCol} />
             <View style={styles.statCol}>
-              <ThemedText style={styles.statValue}>4.2만</ThemedText>
+              <ThemedText style={styles.statValue}>{MOCK_USER_STATS.totalBricks}</ThemedText>
               <ThemedText style={styles.statLabel}>조립한 브릭</ThemedText>
             </View>
             <View style={styles.dividerCol} />
             <View style={styles.statCol}>
-              <ThemedText style={styles.statValue}>97.3%</ThemedText>
+              <ThemedText style={styles.statValue}>{MOCK_USER_STATS.scanAccuracy}</ThemedText>
               <ThemedText style={styles.statLabel}>인식 정확도</ThemedText>
             </View>
           </View>
         )}
 
-        {/* SECTION: ONGOING PROJECT */}
+        {/* SECTION: ONGOING PROJECT — from MOCK_ACTIVE_PROJECT */}
         {user && (
           <View style={styles.section}>
             <ThemedText style={styles.sectionTitle}>진행 중인 프로젝트</ThemedText>
             <View style={styles.projectCard}>
-              <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=600&q=80' }}
-                style={styles.projectBg}
-              />
+              <Image source={{ uri: MOCK_ACTIVE_PROJECT.image }} style={styles.projectBg} />
               <View style={styles.projectOverlay} />
               <View style={styles.projectContent}>
-                <ThemedText style={styles.projectMeta}>Creator Expert 10294</ThemedText>
-                <ThemedText style={styles.projectTitle}>Titanic</ThemedText>
-                <ThemedText style={styles.projectStep}>Step 31 / 48 - 64%</ThemedText>
+                <ThemedText style={styles.projectMeta}>{MOCK_ACTIVE_PROJECT.info}</ThemedText>
+                <ThemedText style={styles.projectTitle}>{MOCK_ACTIVE_PROJECT.title}</ThemedText>
+                <ThemedText style={styles.projectStep}>{MOCK_ACTIVE_PROJECT.status}</ThemedText>
               </View>
               <Pressable style={styles.arrowBtn}>
                 <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
@@ -127,106 +133,65 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* SECTION: RECENT ACTIVITY */}
+        {/* SECTION: RECENT ACTIVITY — from MOCK_ACTIVITY */}
         {user && (
           <View style={styles.section}>
             <ThemedText style={styles.sectionTitle}>최근 활동</ThemedText>
             <View style={styles.cardContainer}>
-              
-              {/* Act 1 */}
-              <View style={styles.activityRow}>
-                <View style={[styles.dot, { backgroundColor: '#39D353' }]} />
-                <ThemedText style={styles.activityText}>배틀팩 #75267 — 전체 완성</ThemedText>
-                <ThemedText style={styles.activityTime}>오늘 14:32</ThemedText>
-              </View>
-              <View style={styles.innerDivider} />
-
-              {/* Act 2 */}
-              <View style={styles.activityRow}>
-                <View style={[styles.dot, { backgroundColor: '#FF9F43' }]} />
-                <ThemedText style={styles.activityText}>Step 31 검증 완료 (Titanic)</ThemedText>
-                <ThemedText style={styles.activityTime}>어제</ThemedText>
-              </View>
-              <View style={styles.innerDivider} />
-
-              {/* Act 3 */}
-              <View style={styles.activityRow}>
-                <View style={[styles.dot, { backgroundColor: '#6C63FF' }]} />
-                <ThemedText style={styles.activityText}>에펠탑 Step 8 저장됨</ThemedText>
-                <ThemedText style={styles.activityTime}>3일 전</ThemedText>
-              </View>
-              <View style={styles.innerDivider} />
-
-              {/* Act 4 */}
-              <View style={styles.activityRow}>
-                <View style={[styles.dot, { backgroundColor: '#8B8FA3' }]} />
-                <ThemedText style={styles.activityText}>소방서 세트 스캔 완료</ThemedText>
-                <ThemedText style={styles.activityTime}>1주 전</ThemedText>
-              </View>
-
+              {MOCK_ACTIVITY.map((act: ActivityItem, idx: number) => (
+                <View key={act.id}>
+                  <View style={styles.activityRow}>
+                    <View style={[styles.dot, { backgroundColor: act.dotColor }]} />
+                    <ThemedText style={styles.activityText}>{act.text}</ThemedText>
+                    <ThemedText style={styles.activityTime}>{act.time}</ThemedText>
+                  </View>
+                  {idx < MOCK_ACTIVITY.length - 1 && <View style={styles.innerDivider} />}
+                </View>
+              ))}
             </View>
           </View>
         )}
 
-        {/* SECTION: APP SETTINGS */}
+        {/* SECTION: APP SETTINGS — from MOCK_APP_SETTINGS */}
         <View style={styles.section}>
           <ThemedText style={styles.sectionTitle}>앱 설정</ThemedText>
           <View style={styles.cardContainer}>
-            
-            <Pressable style={styles.settingRow}>
-              <View style={[styles.iconBox, { backgroundColor: '#FF2E2E' }]}>
-                <Ionicons name="notifications" size={16} color="#FFFFFF" />
+            {MOCK_APP_SETTINGS.map((setting: SettingItem, idx: number) => (
+              <View key={setting.id}>
+                <Pressable style={styles.settingRow}>
+                  <View style={[styles.iconBox, { backgroundColor: setting.iconColor }]}>
+                    <Ionicons name={setting.icon as any} size={16} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.settingMeta}>
+                    <ThemedText style={styles.settingTitle}>{setting.title}</ThemedText>
+                    {setting.subtitle && <ThemedText style={styles.settingSub}>{setting.subtitle}</ThemedText>}
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color="#8B8FA3" />
+                </Pressable>
+                {idx < MOCK_APP_SETTINGS.length - 1 && <View style={styles.innerDivider} />}
               </View>
-              <View style={styles.settingMeta}>
-                <ThemedText style={styles.settingTitle}>알림</ThemedText>
-                <ThemedText style={styles.settingSub}>새 업데이트, 완료 축하</ThemedText>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color="#8B8FA3" />
-            </Pressable>
-            
-            <View style={styles.innerDivider} />
-
-            <Pressable style={styles.settingRow}>
-              <View style={[styles.iconBox, { backgroundColor: '#6C63FF' }]}>
-                <Ionicons name="moon" size={16} color="#FFFFFF" />
-              </View>
-              <View style={styles.settingMeta}>
-                <ThemedText style={styles.settingTitle}>다크 모드</ThemedText>
-                <ThemedText style={styles.settingSub}>항상 켜짐</ThemedText>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color="#8B8FA3" />
-            </Pressable>
-
+            ))}
           </View>
         </View>
 
-        {/* SECTION: SECURITY & POLICY */}
+        {/* SECTION: SECURITY & POLICY — from MOCK_ACCOUNT_SETTINGS */}
         <View style={styles.section}>
           <ThemedText style={styles.sectionTitle}>계정 및 보안</ThemedText>
           <View style={styles.cardContainer}>
-            
-            <Pressable style={styles.settingRow}>
-              <View style={[styles.iconBox, { backgroundColor: '#10B981' }]}>
-                <Ionicons name="shield-checkmark" size={16} color="#FFFFFF" />
+            {MOCK_ACCOUNT_SETTINGS.map((setting: SettingItem, idx: number) => (
+              <View key={setting.id}>
+                <Pressable style={styles.settingRow}>
+                  <View style={[styles.iconBox, { backgroundColor: setting.iconColor }]}>
+                    <Ionicons name={setting.icon as any} size={16} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.settingMeta}>
+                    <ThemedText style={styles.settingTitleTextOnly}>{setting.title}</ThemedText>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color="#8B8FA3" />
+                </Pressable>
+                {idx < MOCK_ACCOUNT_SETTINGS.length - 1 && <View style={styles.innerDivider} />}
               </View>
-              <View style={styles.settingMeta}>
-                <ThemedText style={styles.settingTitleTextOnly}>개인정보 및 보안</ThemedText>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color="#8B8FA3" />
-            </Pressable>
-            
-            <View style={styles.innerDivider} />
-
-            <Pressable style={styles.settingRow}>
-              <View style={[styles.iconBox, { backgroundColor: '#FF9F43' }]}>
-                <Ionicons name="help-circle" size={16} color="#FFFFFF" />
-              </View>
-              <View style={styles.settingMeta}>
-                <ThemedText style={styles.settingTitleTextOnly}>도움말 및 지원</ThemedText>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color="#8B8FA3" />
-            </Pressable>
-
+            ))}
           </View>
         </View>
 

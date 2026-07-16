@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   StyleSheet,
   View,
-  ScrollView,
   Pressable,
   Image,
   Modal,
@@ -12,56 +11,46 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
-
-const STEPS = [
-  { step: 1, title: '계단 조립', minutes: 2 },
-  { step: 2, title: '계단 조립', minutes: 3 },
-  { step: 3, title: '계단 조립', minutes: 3 },
-  { step: 4, title: '계단 조립', minutes: 3 },
-  { step: 5, title: '계단 조립', minutes: 4 },
-  { step: 6, title: '계단 조립', minutes: 3 },
-  { step: 7, title: '계단 조립', minutes: 5 },
-];
+import { MOCK_ASSEMBLY_STEPS, AssemblyStep } from '@/data/mockData';
 
 export default function AssemblyScreen() {
-  const [activeStep, setActiveStep] = useState(4);
+  const [steps] = useState<AssemblyStep[]>(MOCK_ASSEMBLY_STEPS);
+  const [activeStepIdx, setActiveStepIdx] = useState(3); // Step 4 (0-indexed)
   const [showResumeModal, setShowResumeModal] = useState(true);
 
-  const currentStepData = STEPS[activeStep - 1] ?? STEPS[3];
+  const currentStep = steps[activeStepIdx];
 
   const handlePrev = () => {
-    if (activeStep > 1) setActiveStep(activeStep - 1);
+    if (activeStepIdx > 0) setActiveStepIdx(activeStepIdx - 1);
   };
 
   const handleNext = () => {
-    if (activeStep < STEPS.length) setActiveStep(activeStep + 1);
+    if (activeStepIdx < steps.length - 1) setActiveStepIdx(activeStepIdx + 1);
   };
 
-  const handleResume = () => {
-    setShowResumeModal(false);
-  };
-
+  const handleResume = () => setShowResumeModal(false);
   const handleGoBack = () => {
     setShowResumeModal(false);
-    setActiveStep(1);
+    setActiveStepIdx(0);
   };
+
+  if (!currentStep) return null;
 
   return (
     <ThemedView style={styles.container}>
-      {/* TOP META SECTION */}
+      {/* TOP META */}
       <View style={styles.topMeta}>
         <ThemedText style={styles.stepLabel}>
-          STEP {String(activeStep).padStart(2, '0')} — {currentStepData.minutes}분
+          STEP {String(currentStep.step).padStart(2, '0')} — {currentStep.minutes}분
         </ThemedText>
-        {/* Red progress bar under title */}
         <ThemedText style={styles.title}>
-          {currentStepData.title} - {activeStep}
+          {currentStep.title} - {currentStep.step}
         </ThemedText>
         <View style={styles.progressBarContainer}>
           <View
             style={[
               styles.progressBarFill,
-              { width: `${(activeStep / STEPS.length) * 100}%` }
+              { width: `${((activeStepIdx + 1) / steps.length) * 100}%` }
             ]}
           />
         </View>
@@ -69,12 +58,11 @@ export default function AssemblyScreen() {
 
       {/* INSTRUCTION DIAGRAM */}
       <View style={styles.diagramContainer}>
-        {/* Step tag top-left */}
+        {/* Step tag */}
         <View style={styles.stepTag}>
-          <ThemedText style={styles.stepTagText}>Step {String(activeStep).padStart(2, '0')}</ThemedText>
+          <ThemedText style={styles.stepTagText}>Step {String(currentStep.step).padStart(2, '0')}</ThemedText>
         </View>
-
-        {/* Zoom controls top-right */}
+        {/* Zoom controls */}
         <View style={styles.zoomControls}>
           <Pressable style={styles.zoomBtn}>
             <Ionicons name="remove" size={16} color="#333" />
@@ -83,28 +71,26 @@ export default function AssemblyScreen() {
             <Ionicons name="add" size={16} color="#333" />
           </Pressable>
         </View>
-
-        {/* Main instruction image */}
+        {/* Instruction image from mock data */}
         <Image
-          source={{ uri: 'https://images.unsplash.com/photo-1560942485-b2a11cc13456?auto=format&fit=crop&w=600&q=80' }}
+          source={{ uri: currentStep.image }}
           style={styles.instructionImage}
           resizeMode="contain"
         />
       </View>
 
-      {/* NAVIGATION ROW */}
+      {/* NAV ROW */}
       <View style={styles.navRow}>
         <Pressable
           onPress={handlePrev}
-          disabled={activeStep === 1}
+          disabled={activeStepIdx === 0}
           style={({ pressed }) => [
             styles.prevBtn,
-            { opacity: activeStep === 1 ? 0.3 : pressed ? 0.7 : 1 }
+            { opacity: activeStepIdx === 0 ? 0.3 : pressed ? 0.7 : 1 }
           ]}
         >
           <Ionicons name="chevron-back" size={22} color="#FFFFFF" />
         </Pressable>
-
         <Pressable
           onPress={handleNext}
           style={({ pressed }) => [
@@ -128,16 +114,14 @@ export default function AssemblyScreen() {
           <View style={styles.modalCard}>
             <ThemedText style={styles.modalTitle}>이전에 조립하던 이력이 있어요.</ThemedText>
             <ThemedText style={styles.modalSubtitle}>이어하시겠습니까?</ThemedText>
-
             <Pressable
               style={({ pressed }) => [styles.modalBtn, { opacity: pressed ? 0.7 : 1 }]}
               onPress={handleResume}
             >
               <ThemedText style={styles.modalBtnText}>이어하기</ThemedText>
             </Pressable>
-
             <Pressable
-              style={({ pressed }) => [styles.modalBtn, styles.modalBtnOutline, { opacity: pressed ? 0.7 : 1 }]}
+              style={({ pressed }) => [styles.modalBtn, { opacity: pressed ? 0.7 : 1 }]}
               onPress={handleGoBack}
             >
               <ThemedText style={styles.modalBtnTextRed}>뒤로가기</ThemedText>
@@ -263,7 +247,6 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '800',
   },
-  // MODAL
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -300,9 +283,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  modalBtnOutline: {
-    backgroundColor: '#F0F0F0',
   },
   modalBtnText: {
     color: '#11181C',

@@ -13,20 +13,37 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
+import { MOCK_FEED, MOCK_HERO, FeedItem } from '@/data/mockData';
 
 const { width } = Dimensions.get('window');
 
-
 export default function HomeScreen() {
   const [activeFilter, setActiveFilter] = useState<'all' | 'done' | 'doing' | 'technic' | 'iconic'>('all');
+  const [feedItems, setFeedItems] = useState<FeedItem[]>(MOCK_FEED);
 
+  const toggleLike = (id: string) => {
+    setFeedItems(prev =>
+      prev.map(item =>
+        item.id === id
+          ? { ...item, isLiked: !item.isLiked, likes: item.isLiked ? item.likes - 1 : item.likes + 1 }
+          : item
+      )
+    );
+  };
 
+  const toggleBookmark = (id: string) => {
+    setFeedItems(prev =>
+      prev.map(item =>
+        item.id === id ? { ...item, isBookmarked: !item.isBookmarked } : item
+      )
+    );
+  };
 
   return (
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
-        {/* TOP BRAND HEADER MATCHING MOCKUP */}
+        {/* TOP BRAND HEADER */}
         <View style={styles.header}>
           <ThemedText style={styles.logoText}>Logo</ThemedText>
           <View style={styles.headerActionIcons}>
@@ -39,102 +56,90 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* HORIZONTAL FILTERS MATCHING MOCKUP */}
+        {/* FILTER CHIPS */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabScrollContainer}>
           {[
             { id: 'all', label: '전체' },
             { id: 'done', label: '완성' },
             { id: 'doing', label: '진행 중' },
             { id: 'technic', label: '테크닉' },
-            { id: 'iconic', label: '아이코닉' }
+            { id: 'iconic', label: '아이코닉' },
           ].map(tab => (
             <Pressable
               key={tab.id}
               onPress={() => setActiveFilter(tab.id as any)}
-              style={[
-                styles.tabChip,
-                activeFilter === tab.id && styles.activeTabChip
-              ]}
+              style={[styles.tabChip, activeFilter === tab.id && styles.activeTabChip]}
             >
-              <ThemedText style={[
-                styles.tabChipText,
-                activeFilter === tab.id && styles.activeTabChipText
-              ]}>
+              <ThemedText style={[styles.tabChipText, activeFilter === tab.id && styles.activeTabChipText]}>
                 {tab.label}
               </ThemedText>
             </Pressable>
           ))}
         </ScrollView>
 
-        {/* HERO BANNER CARD MATCHING MOCKUP */}
+        {/* HERO BANNER */}
         <View style={styles.heroCard}>
-          <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1585366119957-e5733f3998bf?auto=format&fit=crop&w=800&q=80' }}
-            style={styles.heroImage}
-          />
-          <LinearGradient
-            colors={['transparent', 'rgba(15, 16, 23, 0.95)']}
-            style={styles.heroGradient}
-          />
+          <Image source={{ uri: MOCK_HERO.image }} style={styles.heroImage} />
+          <LinearGradient colors={['transparent', 'rgba(15, 16, 23, 0.95)']} style={styles.heroGradient} />
           <View style={styles.heroMeta}>
             <View style={styles.bannerBadge}>
-              <ThemedText style={styles.bannerBadgeText}>오 이번 주 1위</ThemedText>
+              <ThemedText style={styles.bannerBadgeText}>{MOCK_HERO.badgeText}</ThemedText>
             </View>
-            <ThemedText style={styles.heroTitle}>고O윤</ThemedText>
+            <ThemedText style={styles.heroTitle}>{MOCK_HERO.title}</ThemedText>
             <View style={styles.likeRow}>
               <Ionicons name="heart" size={14} color="#FF2E2E" />
-              <ThemedText style={styles.likeText}>5,204</ThemedText>
-              <ThemedText style={styles.pcsText}>• 7,541피스 - 99.4%</ThemedText>
+              <ThemedText style={styles.likeText}>{MOCK_HERO.likes.toLocaleString()}</ThemedText>
+              <ThemedText style={styles.pcsText}>• {MOCK_HERO.pcs.toLocaleString()}피스 - {MOCK_HERO.pct}%</ThemedText>
             </View>
           </View>
         </View>
 
-        {/* SOCIAL FEED LIST MATCHING MOCKUP */}
+        {/* SOCIAL FEED — loaded from MOCK_FEED */}
         <View style={styles.feedContainer}>
-          {[1, 2, 3].map((item) => (
-            <View key={item} style={styles.feedCard}>
-              
-              {/* User profile row */}
+          {feedItems.map((item) => (
+            <View key={item.id} style={styles.feedCard}>
+              {/* User row */}
               <View style={styles.userRow}>
-                <Image
-                  source={{ uri: `https://randomuser.me/api/portraits/lego/${item}.jpg` }}
-                  style={styles.userAvatar}
-                />
+                <Image source={{ uri: item.userAvatar }} style={styles.userAvatar} />
                 <View style={styles.userInfo}>
-                  <ThemedText style={styles.userName}>MyNameIsYoonKo</ThemedText>
-                  <ThemedText style={styles.timeText}>about 1 hours</ThemedText>
+                  <ThemedText style={styles.userName}>{item.userName}</ThemedText>
+                  <ThemedText style={styles.timeText}>{item.timeAgo}</ThemedText>
                 </View>
               </View>
 
-              {/* Big project card with play button */}
+              {/* Project card */}
               <View style={styles.projectWrapper}>
-                <Image
-                  source={{ uri: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=500&q=80' }}
-                  style={styles.projectBg}
-                />
+                <Image source={{ uri: item.projectImage }} style={styles.projectBg} />
                 <LinearGradient
                   colors={['transparent', 'rgba(15, 16, 23, 0.8)']}
                   style={styles.projectGradient}
                 />
                 <View style={styles.projectContent}>
-                  <ThemedText style={styles.projectTitle}>Titanic</ThemedText>
-                  <ThemedText style={styles.projectDesc}>360 pcs</ThemedText>
+                  <ThemedText style={styles.projectTitle}>{item.projectTitle}</ThemedText>
+                  <ThemedText style={styles.projectDesc}>{item.projectDesc}</ThemedText>
                 </View>
                 <Pressable style={styles.playBtn}>
                   <Ionicons name="play" size={16} color="#FFFFFF" />
                 </Pressable>
               </View>
 
-              {/* Feed actions bottom (heart, bookmark) */}
+              {/* Actions */}
               <View style={styles.actionRow}>
-                <Pressable style={styles.actionBtn}>
-                  <Ionicons name="heart-outline" size={22} color="#8B8FA3" />
+                <Pressable style={styles.actionBtn} onPress={() => toggleLike(item.id)}>
+                  <Ionicons
+                    name={item.isLiked ? 'heart' : 'heart-outline'}
+                    size={22}
+                    color={item.isLiked ? '#FF2E2E' : '#8B8FA3'}
+                  />
                 </Pressable>
-                <Pressable style={styles.actionBtn}>
-                  <Ionicons name="bookmark-outline" size={20} color="#8B8FA3" />
+                <Pressable style={styles.actionBtn} onPress={() => toggleBookmark(item.id)}>
+                  <Ionicons
+                    name={item.isBookmarked ? 'bookmark' : 'bookmark-outline'}
+                    size={20}
+                    color={item.isBookmarked ? '#FF9F43' : '#8B8FA3'}
+                  />
                 </Pressable>
               </View>
-
             </View>
           ))}
         </View>
@@ -152,7 +157,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 60 : 30,
-    paddingBottom: 110, // Added padding to scroll fully above the absolute floating tab bar
+    paddingBottom: 110,
     alignSelf: 'center',
     width: '100%',
     maxWidth: 600,
@@ -267,109 +272,6 @@ const styles = StyleSheet.create({
     color: '#8B8FA3',
     fontSize: 12,
     fontWeight: '600',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-  aiToggleBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: '#FF2E2E15',
-    borderWidth: 1,
-    borderColor: '#FF2E2E40',
-  },
-  aiToggleBtnActive: {
-    backgroundColor: '#FF2E2E',
-    borderColor: '#FF2E2E',
-  },
-  aiToggleText: {
-    fontSize: 12,
-    color: '#FF2E2E',
-    fontWeight: '700',
-  },
-  aiToggleTextActive: {
-    color: '#FFFFFF',
-  },
-  card: {
-    backgroundColor: '#161825',
-    borderRadius: 24,
-    borderWidth: 1.5,
-    borderColor: '#2A2D3E',
-    padding: 20,
-    gap: 16,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-  cardDesc: {
-    fontSize: 13,
-    color: '#8B8FA3',
-    lineHeight: 18,
-  },
-  inputContainer: {
-    borderRadius: 16,
-    backgroundColor: '#0F1017',
-    borderWidth: 1.5,
-    borderColor: '#2A2D3E',
-    height: 90,
-    padding: 12,
-  },
-  textInput: {
-    flex: 1,
-    color: '#ECEDEE',
-    fontSize: 14,
-    textAlignVertical: 'top',
-  },
-  generateBtn: {
-    height: 48,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-  generateBtnText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  codeWrapper: {
-    gap: 10,
-  },
-  outputHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  codeTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  codeBlock: {
-    backgroundColor: '#0F1017',
-    borderRadius: 16,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#2A2D3E',
-  },
-  codeText: {
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    color: '#FF2E2E',
-    fontSize: 11,
   },
   feedContainer: {
     gap: 20,

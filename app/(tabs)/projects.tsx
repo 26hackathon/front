@@ -11,63 +11,25 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
+import { MOCK_PROJECTS, MOCK_ACTIVE_PROJECT, Project } from '@/data/mockData';
 
 export default function ProjectsScreen() {
   const [activeFilter, setActiveFilter] = useState<'all' | 'doing' | 'assembling' | 'done'>('all');
+  const [projects] = useState<Project[]>(MOCK_PROJECTS);
 
-  const projects = [
-    {
-      title: 'Titanic',
-      info: 'Creator Expert 10294',
-      status: 'Step 31/48 • 9,090피스',
-      time: '어제',
-      progress: 0.65,
-      isDone: false,
-      image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80',
-    },
-    {
-      title: 'Ferrari Daytona SP3',
-      info: 'Technic 42143',
-      status: '완성 • 3,778피스',
-      time: '3일 전',
-      progress: 1.0,
-      isDone: true,
-      image: 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=400&q=80',
-    },
-    {
-      title: 'Eiffel Tower',
-      info: 'Icons 10307',
-      status: 'Step 8/60 • 10,001피스',
-      time: '1주 전',
-      progress: 0.13,
-      isDone: false,
-      image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=400&q=80',
-    },
-    {
-      title: 'Eiffel Tower',
-      info: 'Icons 10307',
-      status: 'Step 8/60 • 10,001피스',
-      time: '1주 전',
-      progress: 0.13,
-      isDone: false,
-      image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=400&q=80',
-    },
-    {
-      title: 'Eiffel Tower',
-      info: 'Icons 10307',
-      status: 'Step 8/60 • 10,001피스',
-      time: '1주 전',
-      progress: 0.13,
-      isDone: false,
-      image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=400&q=80',
-    }
-  ];
+  const filteredProjects = projects.filter(proj => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'done') return proj.isDone;
+    if (activeFilter === 'doing') return !proj.isDone && proj.progress < 1;
+    if (activeFilter === 'assembling') return !proj.isDone && proj.progress > 0 && proj.progress < 0.5;
+    return true;
+  });
 
   return (
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
-        {/* HEADER SECTION */}
+        {/* HEADER */}
         <View style={styles.headerRow}>
           <ThemedText style={styles.headerTitle}>내 프로젝트</ThemedText>
           <View style={styles.headerRight}>
@@ -83,80 +45,60 @@ export default function ProjectsScreen() {
         {/* FILTER CHIPS */}
         <View style={styles.filterRow}>
           {[
-            { id: 'all', label: '전체 3' },
-            { id: 'doing', label: '진행 중 2' },
+            { id: 'all', label: `전체 ${projects.length}` },
+            { id: 'doing', label: `진행 중 ${projects.filter(p => !p.isDone).length}` },
             { id: 'assembling', label: '조립중 1' },
-            { id: 'done', label: '완성 1' }
+            { id: 'done', label: `완성 ${projects.filter(p => p.isDone).length}` },
           ].map(chip => (
             <Pressable
               key={chip.id}
               onPress={() => setActiveFilter(chip.id as any)}
-              style={[
-                styles.filterChip,
-                activeFilter === chip.id && styles.activeFilterChip
-              ]}
+              style={[styles.filterChip, activeFilter === chip.id && styles.activeFilterChip]}
             >
-              <ThemedText style={[
-                styles.filterChipText,
-                activeFilter === chip.id && styles.activeFilterChipText
-              ]}>
+              <ThemedText style={[styles.filterChipText, activeFilter === chip.id && styles.activeFilterChipText]}>
                 {chip.label}
               </ThemedText>
             </Pressable>
           ))}
         </View>
 
-        {/* CONTINUE ASSEMBLING PROMO CARD */}
+        {/* CONTINUE ASSEMBLING PROMO — from MOCK_ACTIVE_PROJECT */}
         <View style={styles.promoCard}>
-          <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=600&q=80' }}
-            style={styles.promoBg}
-          />
+          <Image source={{ uri: MOCK_ACTIVE_PROJECT.image }} style={styles.promoBg} />
           <View style={styles.promoOverlay} />
           <View style={styles.promoContent}>
             <View style={styles.promoTagRow}>
               <View style={styles.redDot} />
               <ThemedText style={styles.promoTag}>이어서 조립하기</ThemedText>
             </View>
-            <ThemedText style={styles.promoTitle}>Titanic</ThemedText>
-            <ThemedText style={styles.promoStep}>Step 31 진행 중</ThemedText>
+            <ThemedText style={styles.promoTitle}>{MOCK_ACTIVE_PROJECT.title}</ThemedText>
+            <ThemedText style={styles.promoStep}>{MOCK_ACTIVE_PROJECT.status}</ThemedText>
           </View>
           <Pressable style={styles.promoPlayBtn}>
             <Ionicons name="play" size={18} color="#FFFFFF" />
           </Pressable>
         </View>
 
-        {/* SINGLE ENCLOSING PROJECTS CONTAINER */}
+        {/* PROJECTS LIST — loaded from filteredProjects */}
         <View style={styles.projectsContainer}>
-          {projects.map((proj, idx) => (
-            <View key={idx} style={styles.projectWrapper}>
-              
-              {/* Main item row */}
+          {filteredProjects.map((proj, idx) => (
+            <View key={proj.id} style={styles.projectWrapper}>
               <View style={styles.projectItemRow}>
                 <Image source={{ uri: proj.image }} style={styles.projectImage} />
-                
                 <View style={styles.projectDetail}>
                   <ThemedText style={styles.projectMetaInfo}>{proj.info}</ThemedText>
-                  
                   <View style={styles.titleRow}>
                     <ThemedText style={styles.projectTitle}>{proj.title}</ThemedText>
                     <Pressable style={styles.moreBtn}>
                       <Ionicons name="ellipsis-horizontal" size={16} color="#8B8FA3" />
                     </Pressable>
                   </View>
-
-                  {/* Progress Line */}
                   <View style={styles.progressContainer}>
                     <View style={[
                       styles.progressBar,
-                      {
-                        width: `${proj.progress * 100}%`,
-                        backgroundColor: proj.isDone ? '#39D353' : '#FF2E2E'
-                      }
+                      { width: `${proj.progress * 100}%`, backgroundColor: proj.isDone ? '#39D353' : '#FF2E2E' }
                     ]} />
                   </View>
-
-                  {/* Status metadata and clock */}
                   <View style={styles.statusRow}>
                     <ThemedText style={styles.statusText}>{proj.status}</ThemedText>
                     <View style={styles.timeWrapper}>
@@ -164,13 +106,9 @@ export default function ProjectsScreen() {
                       <ThemedText style={styles.timeText}>{proj.time}</ThemedText>
                     </View>
                   </View>
-
                 </View>
               </View>
-
-              {/* Separator Divider */}
-              {idx < projects.length - 1 && <View style={styles.divider} />}
-              
+              {idx < filteredProjects.length - 1 && <View style={styles.divider} />}
             </View>
           ))}
         </View>
@@ -188,7 +126,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 60 : 30,
-    paddingBottom: 110, // Full padding above tab bar
+    paddingBottom: 110,
     alignSelf: 'center',
     width: '100%',
     maxWidth: 600,
