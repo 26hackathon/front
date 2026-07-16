@@ -1,297 +1,329 @@
-import { useState } from 'react';
-import {
-  StyleSheet,
-  View,
-  Pressable,
-  Image,
-  Modal,
-  Platform,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, Image, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
+import BrickViewer from '@/components/brick-viewer';
 import { ThemedText } from '@/components/ui/themed-text';
-import { ThemedView } from '@/components/ui/themed-view';
-import { MOCK_ASSEMBLY_STEPS, AssemblyStep } from '@/data/mockData';
+import { MOCK_ASSEMBLY_STEPS } from '@/data/mockData';
+import { BrickData } from '@/types';
+
+const ASSEMBLY_BRICKS: BrickData[] = [
+  { brickId: '3020', colorCode: '7', position: { x: 0, y: 0, z: 0 }, rotation: { x: 0, y: 0, z: 0 } },
+  { brickId: '3023', colorCode: '4', position: { x: -0.5, y: 0.4, z: 0 }, rotation: { x: 0, y: 90, z: 0 } },
+  { brickId: '3023', colorCode: '4', position: { x: 0.5, y: 0.4, z: 0 }, rotation: { x: 0, y: 90, z: 0 } },
+  { brickId: '3022', colorCode: '6', position: { x: 0, y: 0.8, z: 0 }, rotation: { x: 0, y: 0, z: 0 } },
+  { brickId: '3023', colorCode: '4', position: { x: 0, y: 1.2, z: 0 }, rotation: { x: 0, y: 0, z: 0 } },
+  { brickId: '3710', colorCode: '7', position: { x: 0, y: 1.6, z: 0 }, rotation: { x: 0, y: 90, z: 0 } },
+  { brickId: '3024', colorCode: '4', position: { x: 0, y: 2, z: 0 }, rotation: { x: 0, y: 0, z: 0 } },
+];
+
+const ASSEMBLY_PROGRESS_KEY = 'assembly-progress-step';
+
+async function readSavedStep(): Promise<number | null> {
+  const value = Platform.OS === 'web'
+    ? globalThis.localStorage?.getItem(ASSEMBLY_PROGRESS_KEY)
+    : await SecureStore.getItemAsync(ASSEMBLY_PROGRESS_KEY);
+  if (value === null || value === undefined) return null;
+
+  const parsed = Number(value);
+  return Number.isInteger(parsed) ? parsed : null;
+}
+
+async function saveStep(stepIndex: number) {
+  const value = String(stepIndex);
+  if (Platform.OS === 'web') {
+    globalThis.localStorage?.setItem(ASSEMBLY_PROGRESS_KEY, value);
+    return;
+  }
+  await SecureStore.setItemAsync(ASSEMBLY_PROGRESS_KEY, value);
+}
 
 export default function AssemblyScreen() {
-  const [steps] = useState<AssemblyStep[]>(MOCK_ASSEMBLY_STEPS);
-  const [activeStepIdx, setActiveStepIdx] = useState(3); // Step 4 (0-indexed)
-  const [showResumeModal, setShowResumeModal] = useState(true);
+  const [activeStepIdx, setActiveStepIdx] = useState(0);
+  const [hasLoadedProgress, setHasLoadedProgress] = useState(false);
+  const currentStep = MOCK_ASSEMBLY_STEPS[activeStepIdx];
+  const visibleBricks = useMemo(
+    () => ASSEMBLY_BRICKS.slice(0, activeStepIdx + 1),
+    [activeStepIdx]
+  );
 
-  const currentStep = steps[activeStepIdx];
+  useEffect(() => {
+    let isMounted = true;
 
-  const handlePrev = () => {
-    if (activeStepIdx > 0) setActiveStepIdx(activeStepIdx - 1);
-  };
+    const restoreProgress = async () => {
+      try {
+        const savedStepIdx = await readSavedStep();
+        if (!isMounted) return;
 
-  const handleNext = () => {
-    if (activeStepIdx < steps.length - 1) setActiveStepIdx(activeStepIdx + 1);
-  };
+        const hasInProgressAssembly =
+          savedStepIdx !== null &&
+          savedStepIdx > 0 &&
+          savedStepIdx < MOCK_ASSEMBLY_STEPS.length;
 
-  const handleResume = () => setShowResumeModal(false);
-  const handleGoBack = () => {
-    setShowResumeModal(false);
-    setActiveStepIdx(0);
-  };
+        if (!hasInProgressAssembly) {
+          setHasLoadedProgress(true);
+          return;
+        }
 
-  if (!currentStep) return null;
+        Alert.alert(
+          '진행 중인 조립이 있어요',
+          `${savedStepIdx + 1}단계부터 이어서 진행하시겠어요?`,
+          [
+            {
+              text: '처음부터',
+              style: 'destructive',
+              onPress: () => {
+                setActiveStepIdx(0);
+                setHasLoadedProgress(true);
+                void saveStep(0);
+              },
+            },
+            {
+              text: '이어서 진행',
+              onPress: () => {
+                setActiveStepIdx(savedStepIdx);
+                setHasLoadedProgress(true);
+              },
+            },
+          ],
+          { cancelable: false }
+        );
+      } catch (error) {
+        console.warn('조립 진행도를 불러오지 못했습니다.', error);
+        if (isMounted) setHasLoadedProgress(true);
+      }
+    };
+
+    void restoreProgress();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedProgress) return;
+    void saveStep(activeStepIdx).catch(error => {
+      console.warn('조립 진행도를 저장하지 못했습니다.', error);
+    });
+  }, [activeStepIdx, hasLoadedProgress]);
+
+  const handlePrev = () => setActiveStepIdx(index => Math.max(0, index - 1));
+  const handleNext = () =>
+    setActiveStepIdx(index => Math.min(MOCK_ASSEMBLY_STEPS.length - 1, index + 1));
 
   return (
-    <ThemedView style={styles.container}>
-      {/* TOP META */}
-      <View style={styles.topMeta}>
-        <ThemedText style={styles.stepLabel}>
-          STEP {String(currentStep.step).padStart(2, '0')} — {currentStep.minutes}분
-        </ThemedText>
-        <ThemedText style={styles.title}>
-          {currentStep.title} - {currentStep.step}
-        </ThemedText>
-        <View style={styles.progressBarContainer}>
-          <View
-            style={[
-              styles.progressBarFill,
-              { width: `${((activeStepIdx + 1) / steps.length) * 100}%` }
-            ]}
-          />
-        </View>
-      </View>
-
-      {/* INSTRUCTION DIAGRAM */}
-      <View style={styles.diagramContainer}>
-        {/* Step tag */}
-        <View style={styles.stepTag}>
-          <ThemedText style={styles.stepTagText}>Step {String(currentStep.step).padStart(2, '0')}</ThemedText>
-        </View>
-        {/* Zoom controls */}
-        <View style={styles.zoomControls}>
-          <Pressable style={styles.zoomBtn}>
-            <Ionicons name="remove" size={16} color="#333" />
-          </Pressable>
-          <Pressable style={styles.zoomBtn}>
-            <Ionicons name="add" size={16} color="#333" />
-          </Pressable>
-        </View>
-        {/* Instruction image from mock data */}
-        <Image
-          source={{ uri: currentStep.image }}
-          style={styles.instructionImage}
-          resizeMode="contain"
-        />
-      </View>
-
-      {/* NAV ROW */}
-      <View style={styles.navRow}>
-        <Pressable
-          onPress={handlePrev}
-          disabled={activeStepIdx === 0}
-          style={({ pressed }) => [
-            styles.prevBtn,
-            { opacity: activeStepIdx === 0 ? 0.3 : pressed ? 0.7 : 1 }
-          ]}
-        >
-          <Ionicons name="chevron-back" size={22} color="#FFFFFF" />
-        </Pressable>
-        <Pressable
-          onPress={handleNext}
-          style={({ pressed }) => [
-            styles.nextBtn,
-            { backgroundColor: pressed ? '#A01818' : '#CC2222' }
-          ]}
-        >
-          <ThemedText style={styles.nextBtnText}>다음 단계</ThemedText>
-          <ThemedText style={styles.nextBtnArrow}> {'>'}</ThemedText>
-        </Pressable>
-      </View>
-
-      {/* RESUME MODAL */}
-      <Modal
-        visible={showResumeModal}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
-      >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
-            <ThemedText style={styles.modalTitle}>이전에 조립하던 이력이 있어요.</ThemedText>
-            <ThemedText style={styles.modalSubtitle}>이어하시겠습니까?</ThemedText>
-            <Pressable
-              style={({ pressed }) => [styles.modalBtn, { opacity: pressed ? 0.7 : 1 }]}
-              onPress={handleResume}
-            >
-              <ThemedText style={styles.modalBtnText}>이어하기</ThemedText>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [styles.modalBtn, { opacity: pressed ? 0.7 : 1 }]}
-              onPress={handleGoBack}
-            >
-              <ThemedText style={styles.modalBtnTextRed}>뒤로가기</ThemedText>
-            </Pressable>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <ThemedText style={styles.title}>
+            {currentStep.title} - {currentStep.step}
+          </ThemedText>
+          <View style={styles.progressTrack}>
+            <View
+              style={[
+                styles.progressFill,
+                { width: `${((activeStepIdx + 1) / MOCK_ASSEMBLY_STEPS.length) * 100}%` },
+              ]}
+            />
           </View>
         </View>
-      </Modal>
-    </ThemedView>
+
+        <View style={styles.previewCard}>
+          <Image source={{ uri: currentStep.image }} style={styles.previewImage} resizeMode="cover" />
+          <View style={styles.previewShade} />
+          <View style={styles.previewCopy}>
+            <ThemedText style={styles.previewEyebrow}>완성 미리보기</ThemedText>
+            <ThemedText style={styles.previewTitle}>계단 모듈</ThemedText>
+          </View>
+        </View>
+
+        <View style={styles.instructionCard}>
+          <BrickViewer bricks={visibleBricks} />
+          <View style={styles.stepBadge}>
+            <ThemedText style={styles.stepBadgeText}>
+              Step {String(currentStep.step).padStart(2, '0')}
+            </ThemedText>
+          </View>
+          <View style={styles.modelCaption} pointerEvents="none">
+            <ThemedText style={styles.modelCaptionIndex}>{currentStep.step}</ThemedText>
+            <ThemedText style={styles.modelCaptionText}>표시된 브릭을 결합하세요</ThemedText>
+          </View>
+        </View>
+
+        <View style={styles.navigation}>
+          <Pressable
+            accessibilityLabel="이전 단계"
+            disabled={activeStepIdx === 0}
+            onPress={handlePrev}
+            style={({ pressed }) => [
+              styles.previousButton,
+              activeStepIdx === 0 && styles.disabledButton,
+              pressed && styles.pressedButton,
+            ]}
+          >
+            <Ionicons name="chevron-back" size={23} color="#FFFFFF" />
+          </Pressable>
+
+          <Pressable
+            accessibilityLabel="다음 단계"
+            disabled={activeStepIdx === MOCK_ASSEMBLY_STEPS.length - 1}
+            onPress={handleNext}
+            style={({ pressed }) => [
+              styles.nextButton,
+              activeStepIdx === MOCK_ASSEMBLY_STEPS.length - 1 && styles.disabledButton,
+              pressed && styles.pressedButton,
+            ]}
+          >
+            <ThemedText style={styles.nextButtonText}>
+              {activeStepIdx === MOCK_ASSEMBLY_STEPS.length - 1 ? '조립 완료' : '다음 단계'}
+            </ThemedText>
+            <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
+          </Pressable>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#111217',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#0F1017',
+    backgroundColor: '#111217',
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 60 : 30,
+    paddingTop: Platform.OS === 'android' ? 16 : 12,
+    paddingBottom: 14,
+    gap: 12,
   },
-  topMeta: {
-    gap: 4,
-    marginTop: 10,
-    marginBottom: 16,
-  },
-  stepLabel: {
-    fontSize: 13,
-    color: '#FF2E2E',
-    fontWeight: '700',
+  header: {
+    gap: 10,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '900',
     color: '#FFFFFF',
-    letterSpacing: -0.5,
+    fontSize: 21,
+    fontWeight: '900',
+    letterSpacing: -0.6,
   },
-  progressBarContainer: {
-    height: 3,
-    backgroundColor: '#2A2D3E',
+  progressTrack: {
+    height: 4,
+    overflow: 'hidden',
     borderRadius: 2,
-    marginTop: 8,
+    backgroundColor: '#4B4D54',
   },
-  progressBarFill: {
+  progressFill: {
     height: '100%',
-    backgroundColor: '#FF2E2E',
     borderRadius: 2,
+    backgroundColor: '#E21B22',
   },
-  diagramContainer: {
-    flex: 1,
-    backgroundColor: '#DDDDDD',
+  previewCard: {
+    height: 98,
     borderRadius: 16,
     overflow: 'hidden',
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
+    backgroundColor: '#262832',
   },
-  stepTag: {
+  previewImage: {
+    width: '100%',
+    height: '100%',
+  },
+  previewShade: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(10, 11, 16, 0.28)',
+  },
+  previewCopy: {
     position: 'absolute',
-    top: 14,
     left: 14,
-    backgroundColor: '#FF9F43',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    zIndex: 10,
+    bottom: 12,
   },
-  stepTagText: {
+  previewEyebrow: {
+    color: '#E7E8EC',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  previewTitle: {
     color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '800',
+    fontSize: 16,
+    fontWeight: '900',
   },
-  zoomControls: {
-    position: 'absolute',
-    top: 14,
-    right: 14,
-    flexDirection: 'row',
-    gap: 6,
-    zIndex: 10,
-  },
-  zoomBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: '#FFFFFFCC',
+  instructionCard: {
+    flex: 1,
+    minHeight: 280,
+    position: 'relative',
+    overflow: 'hidden',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#CCCCCC',
-    justifyContent: 'center',
+    borderColor: '#BFD5E9',
+    backgroundColor: '#D9ECFF',
+  },
+  stepBadge: {
+    position: 'absolute',
+    top: 13,
+    left: 13,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+    borderRadius: 14,
+    backgroundColor: '#15171C',
+  },
+  stepBadgeText: {
+    color: '#FFE900',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  modelCaption: {
+    position: 'absolute',
+    left: 18,
+    right: 18,
+    bottom: 15,
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 9,
   },
-  instructionImage: {
-    width: '85%',
-    height: '70%',
+  modelCaptionIndex: {
+    color: '#121319',
+    fontSize: 28,
+    fontWeight: '900',
   },
-  navRow: {
+  modelCaptionText: {
+    color: '#313743',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  navigation: {
+    height: 54,
     flexDirection: 'row',
     gap: 12,
-    paddingBottom: Platform.OS === 'ios' ? 100 : 85,
   },
-  prevBtn: {
-    width: 54,
-    height: 54,
-    borderRadius: 14,
-    backgroundColor: '#1E2030',
+  previousButton: {
+    width: 50,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#2A2D3E',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: '#464954',
+    backgroundColor: '#292C35',
   },
-  nextBtn: {
+  nextButton: {
     flex: 1,
-    height: 54,
-    borderRadius: 30,
+    borderRadius: 16,
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    backgroundColor: '#D71920',
   },
-  nextBtnText: {
+  nextButtonText: {
     color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '800',
-  },
-  nextBtnArrow: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '800',
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 30,
-  },
-  modalCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 28,
-    alignItems: 'center',
-    gap: 8,
-    width: '100%',
-    maxWidth: 320,
-  },
-  modalTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#11181C',
-    textAlign: 'center',
+    fontWeight: '900',
   },
-  modalSubtitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#11181C',
-    textAlign: 'center',
-    marginBottom: 12,
+  disabledButton: {
+    opacity: 0.38,
   },
-  modalBtn: {
-    width: '100%',
-    height: 52,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalBtnText: {
-    color: '#11181C',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  modalBtnTextRed: {
-    color: '#FF2E2E',
-    fontSize: 16,
-    fontWeight: '600',
+  pressedButton: {
+    opacity: 0.72,
   },
 });

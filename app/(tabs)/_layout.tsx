@@ -59,6 +59,9 @@ export default function TabLayout() {
             name="assembly"
             options={{
               title: '조립',
+              href: '/assembly',
+              tabBarLabel: '조립',
+              tabBarAccessibilityLabel: '조립 탭',
               tabBarIcon: ({ color }) => <IconSymbol size={22} name="square.grid.3x3.fill" color={color} />,
             }}
           />
