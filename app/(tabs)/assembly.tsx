@@ -1,13 +1,43 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Image, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BrickViewer from '@/components/brick-viewer';
 import { ThemedText } from '@/components/ui/themed-text';
-import { MOCK_ASSEMBLY_STEPS } from '@/data/mockData';
 import { BrickData } from '@/types';
+
+const PHOTO_ASSEMBLY_STEPS = [
+  {
+    step: 1,
+    title: '초록 1×6 플레이트',
+    instruction: '초록색 1×6 플레이트를 세로로 놓아주세요.',
+    partLabel: '3666 · Green',
+    partColor: '#257A3E',
+  },
+  {
+    step: 2,
+    title: '라임 1×2 결합',
+    instruction: '끝쪽 두 스터드에 라임색 1×2 플레이트를 결합하세요.',
+    partLabel: '3023 · Lime',
+    partColor: '#BBE90B',
+  },
+  {
+    step: 3,
+    title: '계단 받침 조립',
+    instruction: '초록색 1×2 받침을 넣고 라임 플레이트를 한 칸 위로 올려주세요.',
+    partLabel: '3023 · Green',
+    partColor: '#257A3E',
+  },
+  {
+    step: 4,
+    title: '가로 플레이트 결합',
+    instruction: '초록색 2×3 플레이트를 중심에 가로로 결합하세요.',
+    partLabel: '3021 · Green',
+    partColor: '#257A3E',
+  },
+] as const;
 
 const GREEN_BASE: BrickData = {
   brickId: '3666',
@@ -39,7 +69,7 @@ const ASSEMBLY_STEP_BRICKS: BrickData[][] = [
   ],
 ];
 
-const ASSEMBLY_STEP_COUNT = ASSEMBLY_STEP_BRICKS.length;
+const ASSEMBLY_STEP_COUNT = PHOTO_ASSEMBLY_STEPS.length;
 
 const ASSEMBLY_PROGRESS_KEY = 'assembly-progress-step';
 
@@ -65,7 +95,7 @@ async function saveStep(stepIndex: number) {
 export default function AssemblyScreen() {
   const [activeStepIdx, setActiveStepIdx] = useState(0);
   const [hasLoadedProgress, setHasLoadedProgress] = useState(false);
-  const currentStep = MOCK_ASSEMBLY_STEPS[activeStepIdx];
+  const currentStep = PHOTO_ASSEMBLY_STEPS[activeStepIdx];
   const visibleBricks = useMemo(() => ASSEMBLY_STEP_BRICKS[activeStepIdx], [activeStepIdx]);
 
   useEffect(() => {
@@ -149,13 +179,16 @@ export default function AssemblyScreen() {
           </View>
         </View>
 
-        <View style={styles.previewCard}>
-          <Image source={{ uri: currentStep.image }} style={styles.previewImage} resizeMode="cover" />
-          <View style={styles.previewShade} />
-          <View style={styles.previewCopy}>
-            <ThemedText style={styles.previewEyebrow}>완성 미리보기</ThemedText>
-            <ThemedText style={styles.previewTitle}>계단 모듈</ThemedText>
+        <View style={styles.partCard}>
+          <View style={[styles.partSwatch, { backgroundColor: currentStep.partColor }]}>
+            <View style={styles.stud} />
+            <View style={styles.stud} />
           </View>
+          <View style={styles.partCopy}>
+            <ThemedText style={styles.partEyebrow}>이번 단계 추가 부품</ThemedText>
+            <ThemedText style={styles.partTitle}>{currentStep.partLabel}</ThemedText>
+          </View>
+          <ThemedText style={styles.partStep}>{activeStepIdx + 1}/{ASSEMBLY_STEP_COUNT}</ThemedText>
         </View>
 
         <View style={styles.instructionCard}>
@@ -167,7 +200,7 @@ export default function AssemblyScreen() {
           </View>
           <View style={styles.modelCaption} pointerEvents="none">
             <ThemedText style={styles.modelCaptionIndex}>{currentStep.step}</ThemedText>
-            <ThemedText style={styles.modelCaptionText}>표시된 브릭을 결합하세요</ThemedText>
+            <ThemedText style={styles.modelCaptionText}>{currentStep.instruction}</ThemedText>
           </View>
         </View>
 
@@ -239,33 +272,48 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: '#E21B22',
   },
-  previewCard: {
-    height: 98,
+  partCard: {
+    minHeight: 82,
     borderRadius: 16,
-    overflow: 'hidden',
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 13,
     backgroundColor: '#262832',
   },
-  previewImage: {
-    width: '100%',
-    height: '100%',
+  partSwatch: {
+    width: 58,
+    height: 30,
+    borderRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+    transform: [{ rotate: '-12deg' }],
   },
-  previewShade: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(10, 11, 16, 0.28)',
+  stud: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.16)',
   },
-  previewCopy: {
-    position: 'absolute',
-    left: 14,
-    bottom: 12,
+  partCopy: {
+    flex: 1,
   },
-  previewEyebrow: {
-    color: '#E7E8EC',
+  partEyebrow: {
+    color: '#989CAA',
     fontSize: 10,
     fontWeight: '700',
   },
-  previewTitle: {
+  partTitle: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontWeight: '900',
+  },
+  partStep: {
+    color: '#FF4248',
+    fontSize: 13,
     fontWeight: '900',
   },
   instructionCard: {
@@ -307,9 +355,11 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   modelCaptionText: {
+    flex: 1,
     color: '#313743',
     fontSize: 12,
     fontWeight: '700',
+    lineHeight: 17,
   },
   navigation: {
     height: 54,
