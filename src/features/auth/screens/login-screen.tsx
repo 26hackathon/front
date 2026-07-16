@@ -118,7 +118,13 @@ export default function LoginScreen() {
       {/* Back Button */}
       {!isDesktop && (
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/');
+            }
+          }}
           style={({ pressed }) => [
             styles.backButton,
             { opacity: pressed ? 0.6 : 1 },

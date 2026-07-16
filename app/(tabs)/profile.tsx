@@ -20,7 +20,7 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     await logout();
-    router.replace('/login');
+    router.replace('/');
   };
 
   return (
@@ -40,115 +40,133 @@ export default function ProfileScreen() {
           
           {/* Avatar Container with Red Camera Badge */}
           <View style={styles.avatarWrapper}>
-            <Image
-              source={{ uri: user?.profileImageUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80' }}
-              style={styles.avatar}
-            />
-            <View style={styles.cameraBadge}>
-              <Ionicons name="camera" size={11} color="#FFFFFF" />
-            </View>
+            {user ? (
+              <>
+                <Image
+                  source={{ uri: user.profileImageUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80' }}
+                  style={styles.avatar}
+                />
+                <View style={styles.cameraBadge}>
+                  <Ionicons name="camera" size={11} color="#FFFFFF" />
+                </View>
+              </>
+            ) : (
+              <View style={[styles.avatar, styles.emptyAvatar]}>
+                <Ionicons name="person" size={32} color="#8B8FA3" />
+              </View>
+            )}
           </View>
 
           {/* Nickname, ID, Badges */}
           <View style={styles.userDetails}>
             <View style={styles.nameRow}>
-              <ThemedText style={styles.nicknameText}>{user?.nickname || '김레고'}</ThemedText>
-              <Pressable style={styles.editBtn}>
-                <Ionicons name="pencil-outline" size={14} color="#8B8FA3" />
-              </Pressable>
+              <ThemedText style={styles.nicknameText}>{user ? (user.nickname || '김레고') : '로그인 안됨'}</ThemedText>
+              {user && (
+                <Pressable style={styles.editBtn}>
+                  <Ionicons name="pencil-outline" size={14} color="#8B8FA3" />
+                </Pressable>
+              )}
             </View>
             <ThemedText style={styles.subtext}>
-              {user?.id ? `lego_user_${user.id}` : 'lego_master_kr'} · 가입 2023년 3월
+              {user ? `${user.id ? `lego_user_${user.id}` : 'lego_master_kr'} · 가입 2023년 3월` : '로그인이 필요합니다'}
             </ThemedText>
             
-            <View style={styles.badgeRow}>
-              <View style={styles.masterBadge}>
-                <ThemedText style={styles.masterBadgeText}>MASTER</ThemedText>
+            {user && (
+              <View style={styles.badgeRow}>
+                <View style={styles.masterBadge}>
+                  <ThemedText style={styles.masterBadgeText}>MASTER</ThemedText>
+                </View>
+                <View style={styles.levelBadge}>
+                  <ThemedText style={styles.levelBadgeText}>Lv. 24</ThemedText>
+                </View>
               </View>
-              <View style={styles.levelBadge}>
-                <ThemedText style={styles.levelBadgeText}>Lv. 24</ThemedText>
-              </View>
-            </View>
+            )}
           </View>
 
         </View>
 
         {/* STATS ROW CARD */}
-        <View style={styles.statsCard}>
-          <View style={styles.statCol}>
-            <ThemedText style={styles.statValue}>12</ThemedText>
-            <ThemedText style={styles.statLabel}>완성한 세트</ThemedText>
+        {user && (
+          <View style={styles.statsCard}>
+            <View style={styles.statCol}>
+              <ThemedText style={styles.statValue}>12</ThemedText>
+              <ThemedText style={styles.statLabel}>완성한 세트</ThemedText>
+            </View>
+            <View style={styles.dividerCol} />
+            <View style={styles.statCol}>
+              <ThemedText style={styles.statValue}>4.2만</ThemedText>
+              <ThemedText style={styles.statLabel}>조립한 브릭</ThemedText>
+            </View>
+            <View style={styles.dividerCol} />
+            <View style={styles.statCol}>
+              <ThemedText style={styles.statValue}>97.3%</ThemedText>
+              <ThemedText style={styles.statLabel}>인식 정확도</ThemedText>
+            </View>
           </View>
-          <View style={styles.dividerCol} />
-          <View style={styles.statCol}>
-            <ThemedText style={styles.statValue}>4.2만</ThemedText>
-            <ThemedText style={styles.statLabel}>조립한 브릭</ThemedText>
-          </View>
-          <View style={styles.dividerCol} />
-          <View style={styles.statCol}>
-            <ThemedText style={styles.statValue}>97.3%</ThemedText>
-            <ThemedText style={styles.statLabel}>인식 정확도</ThemedText>
-          </View>
-        </View>
+        )}
 
         {/* SECTION: ONGOING PROJECT */}
-        <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>진행 중인 프로젝트</ThemedText>
-          <View style={styles.projectCard}>
-            <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=600&q=80' }}
-              style={styles.projectBg}
-            />
-            <View style={styles.projectOverlay} />
-            <View style={styles.projectContent}>
-              <ThemedText style={styles.projectMeta}>Creator Expert 10294</ThemedText>
-              <ThemedText style={styles.projectTitle}>Titanic</ThemedText>
-              <ThemedText style={styles.projectStep}>Step 31 / 48 - 64%</ThemedText>
+        {user && (
+          <View style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>진행 중인 프로젝트</ThemedText>
+            <View style={styles.projectCard}>
+              <Image
+                source={{ uri: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=600&q=80' }}
+                style={styles.projectBg}
+              />
+              <View style={styles.projectOverlay} />
+              <View style={styles.projectContent}>
+                <ThemedText style={styles.projectMeta}>Creator Expert 10294</ThemedText>
+                <ThemedText style={styles.projectTitle}>Titanic</ThemedText>
+                <ThemedText style={styles.projectStep}>Step 31 / 48 - 64%</ThemedText>
+              </View>
+              <Pressable style={styles.arrowBtn}>
+                <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
+              </Pressable>
             </View>
-            <Pressable style={styles.arrowBtn}>
-              <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
-            </Pressable>
           </View>
-        </View>
+        )}
 
         {/* SECTION: RECENT ACTIVITY */}
-        <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>최근 활동</ThemedText>
-          <View style={styles.cardContainer}>
-            
-            {/* Act 1 */}
-            <View style={styles.activityRow}>
-              <View style={[styles.dot, { backgroundColor: '#39D353' }]} />
-              <ThemedText style={styles.activityText}>배틀팩 #75267 — 전체 완성</ThemedText>
-              <ThemedText style={styles.activityTime}>오늘 14:32</ThemedText>
-            </View>
-            <View style={styles.innerDivider} />
+        {user && (
+          <View style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>최근 활동</ThemedText>
+            <View style={styles.cardContainer}>
+              
+              {/* Act 1 */}
+              <View style={styles.activityRow}>
+                <View style={[styles.dot, { backgroundColor: '#39D353' }]} />
+                <ThemedText style={styles.activityText}>배틀팩 #75267 — 전체 완성</ThemedText>
+                <ThemedText style={styles.activityTime}>오늘 14:32</ThemedText>
+              </View>
+              <View style={styles.innerDivider} />
 
-            {/* Act 2 */}
-            <View style={styles.activityRow}>
-              <View style={[styles.dot, { backgroundColor: '#FF9F43' }]} />
-              <ThemedText style={styles.activityText}>Step 31 검증 완료 (Titanic)</ThemedText>
-              <ThemedText style={styles.activityTime}>어제</ThemedText>
-            </View>
-            <View style={styles.innerDivider} />
+              {/* Act 2 */}
+              <View style={styles.activityRow}>
+                <View style={[styles.dot, { backgroundColor: '#FF9F43' }]} />
+                <ThemedText style={styles.activityText}>Step 31 검증 완료 (Titanic)</ThemedText>
+                <ThemedText style={styles.activityTime}>어제</ThemedText>
+              </View>
+              <View style={styles.innerDivider} />
 
-            {/* Act 3 */}
-            <View style={styles.activityRow}>
-              <View style={[styles.dot, { backgroundColor: '#6C63FF' }]} />
-              <ThemedText style={styles.activityText}>에펠탑 Step 8 저장됨</ThemedText>
-              <ThemedText style={styles.activityTime}>3일 전</ThemedText>
-            </View>
-            <View style={styles.innerDivider} />
+              {/* Act 3 */}
+              <View style={styles.activityRow}>
+                <View style={[styles.dot, { backgroundColor: '#6C63FF' }]} />
+                <ThemedText style={styles.activityText}>에펠탑 Step 8 저장됨</ThemedText>
+                <ThemedText style={styles.activityTime}>3일 전</ThemedText>
+              </View>
+              <View style={styles.innerDivider} />
 
-            {/* Act 4 */}
-            <View style={styles.activityRow}>
-              <View style={[styles.dot, { backgroundColor: '#8B8FA3' }]} />
-              <ThemedText style={styles.activityText}>소방서 세트 스캔 완료</ThemedText>
-              <ThemedText style={styles.activityTime}>1주 전</ThemedText>
-            </View>
+              {/* Act 4 */}
+              <View style={styles.activityRow}>
+                <View style={[styles.dot, { backgroundColor: '#8B8FA3' }]} />
+                <ThemedText style={styles.activityText}>소방서 세트 스캔 완료</ThemedText>
+                <ThemedText style={styles.activityTime}>1주 전</ThemedText>
+              </View>
 
+            </View>
           </View>
-        </View>
+        )}
 
         {/* SECTION: APP SETTINGS */}
         <View style={styles.section}>
@@ -212,12 +230,21 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* LOGOUT BUTTON CARD */}
-        <Pressable onPress={handleLogout} style={({ pressed }) => [styles.logoutCard, pressed && { opacity: 0.8 }]}>
-          <View style={styles.logoutIconBox}>
-            <Ionicons name="log-out" size={16} color="#FF5C5C" />
+        {/* LOGOUT OR LOGIN BUTTON CARD */}
+        <Pressable
+          onPress={user ? handleLogout : () => router.push('/login')}
+          style={({ pressed }) => [styles.logoutCard, pressed && { opacity: 0.8 }]}
+        >
+          <View style={[styles.logoutIconBox, !user && { backgroundColor: '#10B98115' }]}>
+            <Ionicons
+              name={user ? "log-out" : "log-in"}
+              size={16}
+              color={user ? "#FF2E2E" : "#10B981"}
+            />
           </View>
-          <ThemedText style={styles.logoutText}>로그아웃</ThemedText>
+          <ThemedText style={[styles.logoutText, !user && { color: '#10B981' }]}>
+            {user ? '로그아웃' : '로그인'}
+          </ThemedText>
         </Pressable>
 
         {/* FOOTER METADATA */}
@@ -279,6 +306,11 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#2A2D3E',
     backgroundColor: '#1E2030',
+  },
+  emptyAvatar: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#161825',
   },
   cameraBadge: {
     position: 'absolute',

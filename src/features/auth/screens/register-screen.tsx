@@ -153,8 +153,15 @@ export default function RegisterScreen() {
   };
 
   const handleBack = () => {
-    if (step > 1 && step < 4) setStep(step - 1);
-    else router.back();
+    if (step > 1 && step < 4) {
+      setStep(step - 1);
+    } else {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/login');
+      }
+    }
   };
 
   const renderStepIndicator = () => {
