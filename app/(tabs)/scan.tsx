@@ -1,83 +1,118 @@
-import { useState } from 'react';
 import {
   StyleSheet,
   View,
-  ScrollView,
   Pressable,
-  Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
 
-export default function ScanScreen() {
-  const [isScanning, setIsScanning] = useState(false);
+// Safe require for expo-camera
+let CameraView: any = null;
+let useCameraPermissions: any = null;
+try {
+  const expoCamera = require('expo-camera');
+  CameraView = expoCamera.CameraView;
+  useCameraPermissions = expoCamera.useCameraPermissions;
+} catch (e) {}
 
-  const handleScanStart = () => {
-    setIsScanning(true);
-    setTimeout(() => {
-      setIsScanning(false);
-      Alert.alert('스캔 완료', '영상 속 레고 브릭 5개가 성공적으로 감지되었습니다.');
-    }, 2000);
-  };
+// Brick colors matching the mockup (dark red, mid gray, dark gray)
+const BRICK_PREVIEWS = [
+  { color: '#9B2222', width: 90, height: 60 },
+  { color: '#777777', width: 68, height: 60 },
+  { color: '#3A3A4A', width: 68, height: 60 },
+];
+
+function useSafePermissions() {
+  if (useCameraPermissions) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    return useCameraPermissions();
+  }
+  return [null, () => {}] as const;
+}
+
+export default function ScanScreen() {
+  const hasCameraPackage = !!CameraView;
+  const [permission, requestPermission] = useSafePermissions();
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        
-        {/* HEADER */}
-        <View style={styles.header}>
-          <ThemedText style={styles.headerTitle}>브릭 스캔</ThemedText>
-          <ThemedText style={styles.headerSubtitle}>카메라로 브릭을 비추거나 사진을 불러오세요</ThemedText>
-        </View>
+      {/* HEADER */}
+      <View style={styles.header}>
+        <ThemedText style={styles.headerTitle}>브릭 스캔</ThemedText>
+      </View>
 
-        {/* SCAN WINDOW CONTAINER */}
-        <View style={styles.scanWindowContainer}>
-          <View style={styles.cornerTopLeft} />
-          <View style={styles.cornerTopRight} />
-          <View style={styles.cornerBottomLeft} />
-          <View style={styles.cornerBottomRight} />
+      {/* CAMERA VIEWFINDER */}
+      <View style={styles.viewfinderWrapper}>
+        {hasCameraPackage && permission?.granted ? (
+          (() => {
+            const ExpoCameraView = CameraView;
+            return (
+              <ExpoCameraView style={styles.cameraView} facing="back">
+                {/* Corner scan markers */}
+                <View style={styles.cornerTL} />
+                <View style={styles.cornerTR} />
+                <View style={styles.cornerBL} />
+                <View style={styles.cornerBR} />
+              </ExpoCameraView>
+            );
+          })()
+        ) : (
+          <View style={styles.simulatedView}>
+            {/* Viewfinder corner markers — mimicking the scan frame from mockup */}
+            <View style={styles.cornerTL} />
+            <View style={styles.cornerTR} />
+            <View style={styles.cornerBL} />
+            <View style={styles.cornerBR} />
 
-          {/* DUMMY BRICKS DETECTED */}
-          <View style={[styles.detectedBrick, styles.brickRed, { top: 60, left: 50, width: 80, height: 40 }]} />
-          <View style={[styles.detectedBrick, styles.brickYellow, { top: 90, right: 60, width: 60, height: 30 }]} />
-          <View style={[styles.detectedBrick, styles.brickBlue, { bottom: 80, left: 80, width: 90, height: 30 }]} />
-          <View style={[styles.detectedBrick, styles.brickGrey, { bottom: 70, right: 50, width: 70, height: 50 }]} />
+            {/* Brick color sample blocks in center */}
+            <View style={styles.brickRow}>
+              {BRICK_PREVIEWS.map((brick, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.brickBlock,
+                    { backgroundColor: brick.color, width: brick.width, height: brick.height }
+                  ]}
+                />
+              ))}
+            </View>
 
-          <ThemedText style={styles.scanHint}>브릭을 프레임 안에 넣으세요</ThemedText>
-        </View>
-
-        {/* ACTION BUTTONS */}
-        <View style={styles.btnRow}>
-          <Pressable
-            onPress={handleScanStart}
-            disabled={isScanning}
-            style={({ pressed }) => [
-              styles.scanBtn,
-              { backgroundColor: pressed ? '#E04B4B' : '#FF5C5C' }
-            ]}
-          >
-            <Ionicons name="scan" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
-            <ThemedText style={styles.scanBtnText}>
-              {isScanning ? '스캔 진행 중...' : '스캔 시작'}
+            {/* Hint text */}
+            <ThemedText style={styles.hintText}>
+              브릭을 프레임 안에 위치하거나 번호를 알고있다면 클릭하세요.
             </ThemedText>
-          </Pressable>
+          </View>
+        )}
+      </View>
 
-          <Pressable style={styles.galleryBtn}>
-            <Ionicons name="images-outline" size={20} color="#FFFFFF" />
-          </Pressable>
-        </View>
+      {/* BOTTOM SECTION */}
+      <View style={styles.bottomSection}>
+        {/* SCAN START BUTTON */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.scanBtn,
+            { backgroundColor: pressed ? '#D02E2E' : '#FF2E2E' }
+          ]}
+          onPress={() => {
+            if (hasCameraPackage && !permission?.granted) {
+              requestPermission?.();
+            }
+          }}
+        >
+          <ThemedText style={styles.scanBtnText}>스캔 시작</ThemedText>
+        </Pressable>
 
-        {/* HELP NOTICE */}
+        {/* INFO NOTICE */}
         <View style={styles.infoCard}>
-          <Ionicons name="bulb-outline" size={22} color="#FF9F43" />
+          <Ionicons name="location" size={16} color="#FF9F43" style={{ marginTop: 1 }} />
           <ThemedText style={styles.infoText}>
-            밝은 조명 아래서 브릭을 평평한 면에 펼쳐놓고 스캔하면 인식률이 높아집니다.
+            스캔 이전 부품을 정렬하고 분별할 수 있도록 스캔 준비를 해주세요.
           </ThemedText>
         </View>
-
-      </ScrollView>
+      </View>
     </ThemedView>
   );
 }
@@ -86,149 +121,124 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0F1017',
-  },
-  scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 110,
-    alignSelf: 'center',
-    width: '100%',
-    maxWidth: 600,
-    gap: 24,
+    paddingTop: Platform.OS === 'ios' ? 60 : 30,
   },
   header: {
-    gap: 8,
+    marginBottom: 20,
+    marginTop: 10,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '900',
     color: '#FFFFFF',
     letterSpacing: -0.5,
   },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#8B8FA3',
+  viewfinderWrapper: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#0A0A0A',
+    marginBottom: 20,
   },
-  scanWindowContainer: {
-    height: 380,
-    borderRadius: 24,
-    backgroundColor: '#161825',
-    borderWidth: 1,
-    borderColor: '#2A2D3E',
-    position: 'relative',
+  cameraView: {
+    flex: 1,
+  },
+  simulatedView: {
+    flex: 1,
+    backgroundColor: '#0A0A0A',
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 22,
+    position: 'relative',
   },
-  cornerTopLeft: {
+  // Corner viewfinder markers — 4 corner brackets
+  cornerTL: {
     position: 'absolute',
-    top: 20,
-    left: 20,
-    width: 24,
-    height: 24,
+    top: 24,
+    left: 24,
+    width: 32,
+    height: 32,
     borderTopWidth: 3,
     borderLeftWidth: 3,
-    borderColor: '#8B8FA3',
+    borderColor: '#FFFFFF',
   },
-  cornerTopRight: {
+  cornerTR: {
     position: 'absolute',
-    top: 20,
-    right: 20,
-    width: 24,
-    height: 24,
+    top: 24,
+    right: 24,
+    width: 32,
+    height: 32,
     borderTopWidth: 3,
     borderRightWidth: 3,
-    borderColor: '#8B8FA3',
+    borderColor: '#FFFFFF',
   },
-  cornerBottomLeft: {
+  cornerBL: {
     position: 'absolute',
-    bottom: 20,
-    left: 20,
-    width: 24,
-    height: 24,
+    bottom: 24,
+    left: 24,
+    width: 32,
+    height: 32,
     borderBottomWidth: 3,
     borderLeftWidth: 3,
-    borderColor: '#8B8FA3',
+    borderColor: '#FFFFFF',
   },
-  cornerBottomRight: {
+  cornerBR: {
     position: 'absolute',
-    bottom: 20,
-    right: 20,
-    width: 24,
-    height: 24,
+    bottom: 24,
+    right: 24,
+    width: 32,
+    height: 32,
     borderBottomWidth: 3,
     borderRightWidth: 3,
-    borderColor: '#8B8FA3',
+    borderColor: '#FFFFFF',
   },
-  scanHint: {
-    fontSize: 14,
-    color: '#8B8FA3',
-    fontWeight: '600',
-    marginTop: 100,
-  },
-  detectedBrick: {
-    position: 'absolute',
-    borderRadius: 8,
-    opacity: 0.35,
-  },
-  brickRed: {
-    backgroundColor: '#FF5C5C',
-  },
-  brickYellow: {
-    backgroundColor: '#FF9F43',
-  },
-  brickBlue: {
-    backgroundColor: '#6C63FF',
-  },
-  brickGrey: {
-    backgroundColor: '#8B8FA3',
-  },
-  btnRow: {
+  brickRow: {
     flexDirection: 'row',
+    gap: 8,
     alignItems: 'center',
+  },
+  brickBlock: {
+    borderRadius: 8,
+  },
+  hintText: {
+    color: '#8B8FA3',
+    fontSize: 13,
+    textAlign: 'center',
+    paddingHorizontal: 32,
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  bottomSection: {
     gap: 12,
+    paddingBottom: Platform.OS === 'ios' ? 100 : 85,
   },
   scanBtn: {
-    flex: 1,
-    height: 52,
-    borderRadius: 16,
+    height: 54,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'row',
-    shadowColor: '#FF5C5C',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
   },
   scanBtnText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  galleryBtn: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
-    backgroundColor: '#1E2030',
-    borderWidth: 1,
-    borderColor: '#2A2D3E',
-    justifyContent: 'center',
-    alignItems: 'center',
+    fontSize: 17,
+    fontWeight: '800',
   },
   infoCard: {
     flexDirection: 'row',
-    backgroundColor: '#FF9F4312',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: '#1A1510',
+    borderRadius: 14,
+    padding: 14,
     borderWidth: 1,
-    borderColor: '#FF9F4330',
-    borderRadius: 18,
-    padding: 16,
-    gap: 12,
-    alignItems: 'center',
+    borderColor: '#3A2E18',
   },
   infoText: {
     flex: 1,
-    fontSize: 13,
     color: '#FF9F43',
-    lineHeight: 18,
+    fontSize: 13,
+    lineHeight: 20,
+    fontWeight: '500',
   },
 });

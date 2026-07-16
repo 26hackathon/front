@@ -50,7 +50,7 @@ export default function TabLayout() {
                   styles.scanTabContainer,
                   { backgroundColor: focused ? '#D02E2E' : '#FF2E2E' }
                 ]}>
-                  <IconSymbol size={22} name="camera.fill" color="#FFFFFF" />
+                  <IconSymbol size={24} name="qrcode.viewfinder" color="#FFFFFF" />
                 </View>
               ),
             }}

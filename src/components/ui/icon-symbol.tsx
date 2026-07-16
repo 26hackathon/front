@@ -26,6 +26,7 @@ const MAPPING = {
   'camera.fill': 'camera-alt',
   'square.grid.3x3.fill': 'grid-on',
   'person.fill': 'person',
+  'qrcode.viewfinder': 'crop-free',
 } as IconMapping;
 
 /**

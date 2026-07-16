@@ -5,93 +5,146 @@ import {
   ScrollView,
   Pressable,
   Image,
+  Modal,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/ui/themed-text';
 import { ThemedView } from '@/components/ui/themed-view';
 
+const STEPS = [
+  { step: 1, title: '계단 조립', minutes: 2 },
+  { step: 2, title: '계단 조립', minutes: 3 },
+  { step: 3, title: '계단 조립', minutes: 3 },
+  { step: 4, title: '계단 조립', minutes: 3 },
+  { step: 5, title: '계단 조립', minutes: 4 },
+  { step: 6, title: '계단 조립', minutes: 3 },
+  { step: 7, title: '계단 조립', minutes: 5 },
+];
+
 export default function AssemblyScreen() {
   const [activeStep, setActiveStep] = useState(4);
+  const [showResumeModal, setShowResumeModal] = useState(true);
+
+  const currentStepData = STEPS[activeStep - 1] ?? STEPS[3];
 
   const handlePrev = () => {
     if (activeStep > 1) setActiveStep(activeStep - 1);
   };
 
   const handleNext = () => {
-    if (activeStep < 7) setActiveStep(activeStep + 1);
+    if (activeStep < STEPS.length) setActiveStep(activeStep + 1);
+  };
+
+  const handleResume = () => {
+    setShowResumeModal(false);
+  };
+
+  const handleGoBack = () => {
+    setShowResumeModal(false);
+    setActiveStep(1);
   };
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        
-        {/* TOP META ROW */}
-        <View style={styles.metaRow}>
-          <View style={styles.badge}>
-            <ThemedText style={styles.badgeText}>STEP 0{activeStep} — 3분</ThemedText>
-          </View>
-          <ThemedText style={styles.title}>머리 조립</ThemedText>
-        </View>
-
-        {/* INSTRUCTION DIAGRAM BOX */}
-        <View style={styles.diagramContainer}>
-          
-          {/* Zoom controls */}
-          <View style={styles.zoomControls}>
-            <Pressable style={styles.zoomBtn}>
-              <Ionicons name="search-outline" size={16} color="#FFFFFF" />
-            </Pressable>
-            <Pressable style={styles.zoomBtn}>
-              <Ionicons name="add-outline" size={16} color="#FFFFFF" />
-            </Pressable>
-          </View>
-
-          {/* Current Step Overlay Tag */}
-          <View style={styles.stepTag}>
-            <ThemedText style={styles.stepTagText}>Step 0{activeStep}</ThemedText>
-          </View>
-
-          {/* Main 3D Lego Instruction Mockup Image */}
-          <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1560942485-b2a11cc13456?auto=format&fit=crop&w=600&q=80' }}
-            style={styles.instructionImage}
-            resizeMode="contain"
+      {/* TOP META SECTION */}
+      <View style={styles.topMeta}>
+        <ThemedText style={styles.stepLabel}>
+          STEP {String(activeStep).padStart(2, '0')} — {currentStepData.minutes}분
+        </ThemedText>
+        {/* Red progress bar under title */}
+        <ThemedText style={styles.title}>
+          {currentStepData.title} - {activeStep}
+        </ThemedText>
+        <View style={styles.progressBarContainer}>
+          <View
+            style={[
+              styles.progressBarFill,
+              { width: `${(activeStep / STEPS.length) * 100}%` }
+            ]}
           />
+        </View>
+      </View>
 
-          {/* Assembly direction indicators */}
-          <View style={styles.guideContainer}>
-            <Ionicons name="arrow-down" size={32} color="#FF5C5C" />
-            <ThemedText style={styles.guideText}>돌기에 맞춰 수직으로 결합</ThemedText>
+      {/* INSTRUCTION DIAGRAM */}
+      <View style={styles.diagramContainer}>
+        {/* Step tag top-left */}
+        <View style={styles.stepTag}>
+          <ThemedText style={styles.stepTagText}>Step {String(activeStep).padStart(2, '0')}</ThemedText>
+        </View>
+
+        {/* Zoom controls top-right */}
+        <View style={styles.zoomControls}>
+          <Pressable style={styles.zoomBtn}>
+            <Ionicons name="remove" size={16} color="#333" />
+          </Pressable>
+          <Pressable style={styles.zoomBtn}>
+            <Ionicons name="add" size={16} color="#333" />
+          </Pressable>
+        </View>
+
+        {/* Main instruction image */}
+        <Image
+          source={{ uri: 'https://images.unsplash.com/photo-1560942485-b2a11cc13456?auto=format&fit=crop&w=600&q=80' }}
+          style={styles.instructionImage}
+          resizeMode="contain"
+        />
+      </View>
+
+      {/* NAVIGATION ROW */}
+      <View style={styles.navRow}>
+        <Pressable
+          onPress={handlePrev}
+          disabled={activeStep === 1}
+          style={({ pressed }) => [
+            styles.prevBtn,
+            { opacity: activeStep === 1 ? 0.3 : pressed ? 0.7 : 1 }
+          ]}
+        >
+          <Ionicons name="chevron-back" size={22} color="#FFFFFF" />
+        </Pressable>
+
+        <Pressable
+          onPress={handleNext}
+          style={({ pressed }) => [
+            styles.nextBtn,
+            { backgroundColor: pressed ? '#A01818' : '#CC2222' }
+          ]}
+        >
+          <ThemedText style={styles.nextBtnText}>다음 단계</ThemedText>
+          <ThemedText style={styles.nextBtnArrow}> {'>'}</ThemedText>
+        </Pressable>
+      </View>
+
+      {/* RESUME MODAL */}
+      <Modal
+        visible={showResumeModal}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <ThemedText style={styles.modalTitle}>이전에 조립하던 이력이 있어요.</ThemedText>
+            <ThemedText style={styles.modalSubtitle}>이어하시겠습니까?</ThemedText>
+
+            <Pressable
+              style={({ pressed }) => [styles.modalBtn, { opacity: pressed ? 0.7 : 1 }]}
+              onPress={handleResume}
+            >
+              <ThemedText style={styles.modalBtnText}>이어하기</ThemedText>
+            </Pressable>
+
+            <Pressable
+              style={({ pressed }) => [styles.modalBtn, styles.modalBtnOutline, { opacity: pressed ? 0.7 : 1 }]}
+              onPress={handleGoBack}
+            >
+              <ThemedText style={styles.modalBtnTextRed}>뒤로가기</ThemedText>
+            </Pressable>
           </View>
         </View>
-
-        {/* PREV/NEXT NAVIGATION ROW */}
-        <View style={styles.navRow}>
-          <Pressable
-            onPress={handlePrev}
-            style={({ pressed }) => [
-              styles.navBtnCircle,
-              { opacity: activeStep === 1 ? 0.3 : (pressed ? 0.7 : 1) }
-            ]}
-            disabled={activeStep === 1}
-          >
-            <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
-          </Pressable>
-
-          <Pressable
-            onPress={handleNext}
-            style={({ pressed }) => [
-              styles.nextBtn,
-              { backgroundColor: pressed ? '#E04B4B' : '#FF5C5C' }
-            ]}
-          >
-            <ThemedText style={styles.nextBtnText}>다음 단계</ThemedText>
-            <Ionicons name="chevron-forward" size={18} color="#FFFFFF" style={{ marginLeft: 6 }} />
-          </Pressable>
-        </View>
-
-      </ScrollView>
+      </Modal>
     </ThemedView>
   );
 }
@@ -100,72 +153,54 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0F1017',
-  },
-  scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 110,
-    alignSelf: 'center',
-    width: '100%',
-    maxWidth: 600,
-    gap: 24,
+    paddingTop: Platform.OS === 'ios' ? 60 : 30,
   },
-  metaRow: {
-    gap: 8,
+  topMeta: {
+    gap: 4,
+    marginTop: 10,
+    marginBottom: 16,
   },
-  badge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#FF5C5C20',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  badgeText: {
-    color: '#FF5C5C',
-    fontSize: 11,
+  stepLabel: {
+    fontSize: 13,
+    color: '#FF2E2E',
     fontWeight: '700',
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '900',
     color: '#FFFFFF',
     letterSpacing: -0.5,
   },
+  progressBarContainer: {
+    height: 3,
+    backgroundColor: '#2A2D3E',
+    borderRadius: 2,
+    marginTop: 8,
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#FF2E2E',
+    borderRadius: 2,
+  },
   diagramContainer: {
-    height: 420,
-    borderRadius: 24,
-    backgroundColor: '#FFFFFF', // Clean light gray/white diagram card matching mockup
-    borderWidth: 1.5,
-    borderColor: '#FF5C5C', // Bright highlight border matching chanhyuk indicator
+    flex: 1,
+    backgroundColor: '#DDDDDD',
+    borderRadius: 16,
+    overflow: 'hidden',
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
-  },
-  zoomControls: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    flexDirection: 'row',
-    gap: 8,
-    zIndex: 10,
-  },
-  zoomBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(15, 16, 23, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginBottom: 16,
   },
   stepTag: {
     position: 'absolute',
-    top: 16,
-    left: 16,
+    top: 14,
+    left: 14,
     backgroundColor: '#FF9F43',
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 10,
+    borderRadius: 8,
     zIndex: 10,
   },
   stepTagText: {
@@ -173,31 +208,37 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800',
   },
-  instructionImage: {
-    width: '80%',
-    height: '60%',
-    marginTop: -20,
-  },
-  guideContainer: {
+  zoomControls: {
     position: 'absolute',
-    bottom: 24,
-    alignItems: 'center',
-    gap: 4,
+    top: 14,
+    right: 14,
+    flexDirection: 'row',
+    gap: 6,
+    zIndex: 10,
   },
-  guideText: {
-    fontSize: 13,
-    color: '#11181C',
-    fontWeight: '700',
+  zoomBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFFCC',
+    borderWidth: 1,
+    borderColor: '#CCCCCC',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  instructionImage: {
+    width: '85%',
+    height: '70%',
   },
   navRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     gap: 12,
+    paddingBottom: Platform.OS === 'ios' ? 100 : 85,
   },
-  navBtnCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 16,
+  prevBtn: {
+    width: 54,
+    height: 54,
+    borderRadius: 14,
     backgroundColor: '#1E2030',
     borderWidth: 1,
     borderColor: '#2A2D3E',
@@ -206,20 +247,71 @@ const styles = StyleSheet.create({
   },
   nextBtn: {
     flex: 1,
-    height: 52,
-    borderRadius: 16,
+    height: 54,
+    borderRadius: 30,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'row',
-    shadowColor: '#FF5C5C',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
   },
   nextBtnText: {
     color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '800',
+  },
+  nextBtnArrow: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '800',
+  },
+  // MODAL
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 30,
+  },
+  modalCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 28,
+    alignItems: 'center',
+    gap: 8,
+    width: '100%',
+    maxWidth: 320,
+  },
+  modalTitle: {
     fontSize: 16,
     fontWeight: '700',
+    color: '#11181C',
+    textAlign: 'center',
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#11181C',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  modalBtn: {
+    width: '100%',
+    height: 52,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBtnOutline: {
+    backgroundColor: '#F0F0F0',
+  },
+  modalBtnText: {
+    color: '#11181C',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalBtnTextRed: {
+    color: '#FF2E2E',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

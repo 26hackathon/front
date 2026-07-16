@@ -4,7 +4,6 @@ import {
   View,
   ScrollView,
   Pressable,
-  TextInput,
   Image,
   Dimensions,
   Platform,
@@ -17,64 +16,11 @@ import { ThemedView } from '@/components/ui/themed-view';
 
 const { width } = Dimensions.get('window');
 
-// LDraw Coordinate Calculator Helper
-function calculateLduCoords(stepIdx: number, brickId: string) {
-  const studInterval = 20;
-  const standardHeight = 24;
-  const x = stepIdx * 2 * studInterval;
-  const y = stepIdx * standardHeight;
-  const z = 0;
-  return { x, y, z };
-}
 
 export default function HomeScreen() {
-  const [inputText, setInputText] = useState('');
-  const [assemblySteps, setAssemblySteps] = useState<any[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'done' | 'doing' | 'technic' | 'iconic'>('all');
-  const [showAiEngine, setShowAiEngine] = useState(false);
 
-  const handleGenerate = () => {
-    if (!inputText.trim()) return;
-    setIsGenerating(true);
-    
-    setTimeout(() => {
-      const parsedSteps = [
-        {
-          step_number: 1,
-          brick_id: '3001',
-          color_code: 1,
-          description: '파란색 2x4 규격 브릭을 바닥판 기준 원점에 배치합니다.',
-          install_position: calculateLduCoords(0, '3001'),
-          rotation: { x: 0, y: 0, z: 0 },
-          connection_info: {
-            target_brick_step: null,
-            stud_coordinates: [],
-            hole_coordinates: []
-          }
-        },
-        {
-          step_number: 2,
-          brick_id: '3003',
-          color_code: 14,
-          description: '노란색 2x2 규격 브릭을 파란색 브릭의 우측 돌기 4칸 영역에 결합합니다.',
-          install_position: calculateLduCoords(1, '3003'),
-          rotation: { x: 0, y: 0, z: 0 },
-          connection_info: {
-            target_brick_step: 1,
-            stud_coordinates: [{ x: 2, z: 0 }, { x: 3, z: 0 }],
-            hole_coordinates: [{ x: 0, z: 0 }, { x: 1, z: 0 }]
-          }
-        }
-      ];
-      setAssemblySteps(parsedSteps);
-      setIsGenerating(false);
-    }, 1200);
-  };
 
-  const getStepText = (steps: typeof assemblySteps) => {
-    return JSON.stringify({ assembly_steps: steps }, null, 2);
-  };
 
   return (
     <ThemedView style={styles.container}>
@@ -143,119 +89,55 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* HEADER SECTION FOR ACTION ITEMS */}
-        <View style={styles.sectionHeader}>
-          <ThemedText style={styles.sectionTitle}>추천 창작 피드</ThemedText>
-          <Pressable
-            onPress={() => setShowAiEngine(!showAiEngine)}
-            style={[styles.aiToggleBtn, showAiEngine && styles.aiToggleBtnActive]}
-          >
-            <Ionicons name="construct" size={15} color={showAiEngine ? '#FFFFFF' : '#FF2E2E'} />
-            <ThemedText style={[styles.aiToggleText, showAiEngine && styles.aiToggleTextActive]}>
-              {showAiEngine ? '피드 보기' : 'AI 역설계 엔진'}
-            </ThemedText>
-          </Pressable>
-        </View>
+        {/* SOCIAL FEED LIST MATCHING MOCKUP */}
+        <View style={styles.feedContainer}>
+          {[1, 2, 3].map((item) => (
+            <View key={item} style={styles.feedCard}>
+              
+              {/* User profile row */}
+              <View style={styles.userRow}>
+                <Image
+                  source={{ uri: `https://randomuser.me/api/portraits/lego/${item}.jpg` }}
+                  style={styles.userAvatar}
+                />
+                <View style={styles.userInfo}>
+                  <ThemedText style={styles.userName}>MyNameIsYoonKo</ThemedText>
+                  <ThemedText style={styles.timeText}>about 1 hours</ThemedText>
+                </View>
+              </View>
 
-        {/* AI INFERENCE ENGINE CONTROLLER (SHOWN CONDITIONALLY) */}
-        {showAiEngine ? (
-          <View style={styles.card}>
-            <ThemedText style={styles.cardTitle}>⚙️ GGÆDA AI 비전 역설계 엔진</ThemedText>
-            <ThemedText style={styles.cardDesc}>
-              레고 조립 묘사문을 통해 LDraw 규격의 수평(20 LDU) 및 수직(24/8 LDU) 조립 좌표 데이터를 추출합니다.
-            </ThemedText>
-            
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.textInput}
-                placeholder="예: 파란색 2x4 브릭 위에 노란색 2x2 브릭을 결합해줘..."
-                placeholderTextColor="#8B8FA3"
-                value={inputText}
-                onChangeText={setInputText}
-                multiline
-              />
+              {/* Big project card with play button */}
+              <View style={styles.projectWrapper}>
+                <Image
+                  source={{ uri: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=500&q=80' }}
+                  style={styles.projectBg}
+                />
+                <LinearGradient
+                  colors={['transparent', 'rgba(15, 16, 23, 0.8)']}
+                  style={styles.projectGradient}
+                />
+                <View style={styles.projectContent}>
+                  <ThemedText style={styles.projectTitle}>Titanic</ThemedText>
+                  <ThemedText style={styles.projectDesc}>360 pcs</ThemedText>
+                </View>
+                <Pressable style={styles.playBtn}>
+                  <Ionicons name="play" size={16} color="#FFFFFF" />
+                </Pressable>
+              </View>
+
+              {/* Feed actions bottom (heart, bookmark) */}
+              <View style={styles.actionRow}>
+                <Pressable style={styles.actionBtn}>
+                  <Ionicons name="heart-outline" size={22} color="#8B8FA3" />
+                </Pressable>
+                <Pressable style={styles.actionBtn}>
+                  <Ionicons name="bookmark-outline" size={20} color="#8B8FA3" />
+                </Pressable>
+              </View>
+
             </View>
-
-            <Pressable
-              onPress={handleGenerate}
-              disabled={isGenerating}
-              style={({ pressed }) => [
-                styles.generateBtn,
-                { backgroundColor: pressed ? '#D02E2E' : '#FF2E2E' }
-              ]}
-            >
-              <Ionicons name="cube" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
-              <ThemedText style={styles.generateBtnText}>
-                {isGenerating ? 'LDraw 좌표 역설계 중...' : '3D 조립 좌표 추출'}
-              </ThemedText>
-            </Pressable>
-
-            {assemblySteps.length > 0 && (
-              <View style={styles.codeWrapper}>
-                <View style={styles.outputHeader}>
-                  <ThemedText style={styles.codeTitle}>역설계된 LDraw JSON</ThemedText>
-                </View>
-                <View style={styles.codeBlock}>
-                  <ScrollView horizontal>
-                    <ThemedText style={styles.codeText}>
-                      {getStepText(assemblySteps)}
-                    </ThemedText>
-                  </ScrollView>
-                </View>
-              </View>
-            )}
-          </View>
-        ) : (
-          /* SOCIAL FEED LIST MATCHING MOCKUP */
-          <View style={styles.feedContainer}>
-            {[1, 2, 3].map((item) => (
-              <View key={item} style={styles.feedCard}>
-                
-                {/* User profile row */}
-                <View style={styles.userRow}>
-                  <Image
-                    source={{ uri: `https://randomuser.me/api/portraits/lego/${item}.jpg` }}
-                    style={styles.userAvatar}
-                  />
-                  <View style={styles.userInfo}>
-                    <ThemedText style={styles.userName}>MyNameIsYoonKo</ThemedText>
-                    <ThemedText style={styles.timeText}>about 1 hours</ThemedText>
-                  </View>
-                </View>
-
-                {/* Big project card with play button */}
-                <View style={styles.projectWrapper}>
-                  <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=500&q=80' }}
-                    style={styles.projectBg}
-                  />
-                  <LinearGradient
-                    colors={['transparent', 'rgba(15, 16, 23, 0.8)']}
-                    style={styles.projectGradient}
-                  />
-                  <View style={styles.projectContent}>
-                    <ThemedText style={styles.projectTitle}>Titanic</ThemedText>
-                    <ThemedText style={styles.projectDesc}>360 pcs</ThemedText>
-                  </View>
-                  <Pressable style={styles.playBtn}>
-                    <Ionicons name="play" size={16} color="#FFFFFF" />
-                  </Pressable>
-                </View>
-
-                {/* Feed actions bottom (heart, bookmark) */}
-                <View style={styles.actionRow}>
-                  <Pressable style={styles.actionBtn}>
-                    <Ionicons name="heart-outline" size={22} color="#8B8FA3" />
-                  </Pressable>
-                  <Pressable style={styles.actionBtn}>
-                    <Ionicons name="bookmark-outline" size={20} color="#8B8FA3" />
-                  </Pressable>
-                </View>
-
-              </View>
-            ))}
-          </View>
-        )}
+          ))}
+        </View>
 
       </ScrollView>
     </ThemedView>
